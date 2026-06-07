@@ -25,7 +25,7 @@ const sorted = computed(() => [...data.value].sort((a, b) => a.rank - b.rank))
 </script>
 
 <style scoped>
-.ranking-panel { padding: 12px; }
+.ranking-panel { padding: 12px; background: #1a1a1a; }
 .panel-title { font-size: 14px; font-weight: 600; color: #ddd; margin: 0 0 12px 0; }
 .table-wrap { max-height: 360px; overflow-y: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }

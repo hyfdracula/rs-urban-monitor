@@ -18,13 +18,17 @@
         </router-link>
       </nav>
       <div class="header-actions">
+        <el-button text @click="goUpload">
+          <el-icon><Upload /></el-icon>
+          <span>上传</span>
+        </el-button>
         <el-button text @click="exportMap">
           <el-icon><Download /></el-icon>
           <span>导出</span>
         </el-button>
-        <el-button type="primary" size="small" @click="publishMapService">
-          <el-icon><Upload /></el-icon>
-          <span>发布地图服务</span>
+        <el-button text @click="publishMapService">
+          <el-icon><Position /></el-icon>
+          <span>发布</span>
         </el-button>
       </div>
 
@@ -59,18 +63,18 @@
             </router-link>
           </div>
           <div class="drawer-actions">
-            <el-button @click="goUpload(); drawerOpen = false">
-              <el-icon><Upload /></el-icon>
-              <span>上传数据</span>
-            </el-button>
-            <el-button @click="exportMap(); drawerOpen = false">
+            <button class="drawer-action-btn" @click="exportMap(); drawerOpen = false">
               <el-icon><Download /></el-icon>
               <span>导出报告</span>
-            </el-button>
-            <el-button type="primary" @click="publishMapService(); drawerOpen = false">
+            </button>
+            <button class="drawer-action-btn" @click="goUpload(); drawerOpen = false">
               <el-icon><Upload /></el-icon>
+              <span>上传数据</span>
+            </button>
+            <button class="drawer-action-btn" @click="publishMapService(); drawerOpen = false">
+              <el-icon><Position /></el-icon>
               <span>发布地图服务</span>
-            </el-button>
+            </button>
           </div>
         </nav>
       </Transition>
@@ -82,6 +86,7 @@
 
     <!-- Dialogs -->
     <ExportReportDialog v-model="showExportDialog" />
+    <UploadDialog v-model="showUploadDialog" />
     <PublishMapDialog v-model="showPublishDialog" />
   </div>
 </template>
@@ -95,26 +100,32 @@ import {
   Switch,
   Download,
   Upload,
+  Position,
 } from '@element-plus/icons-vue'
 import ExportReportDialog from './components/dialog/ExportReportDialog.vue'
 import PublishMapDialog from './components/dialog/PublishMapDialog.vue'
+import UploadDialog from './components/dialog/UploadDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const showExportDialog = ref(false)
 const showPublishDialog = ref(false)
+const showUploadDialog = ref(false)
 const drawerOpen = ref(false)
 
 const navItems = [
   { path: '/', title: '总览', icon: 'Location' },
   { path: '/compare', title: '双期对比', icon: 'Switch' },
   { path: '/report', title: '分析报告', icon: 'Document' },
-  { path: '/upload', title: '上传', icon: 'Upload' },
 ]
 
 function exportMap() {
   showExportDialog.value = true
+}
+
+function goUpload() {
+  showUploadDialog.value = true
 }
 
 function publishMapService() {
@@ -226,19 +237,8 @@ body {
   gap: 8px;
 }
 
-.header-actions .el-button span {
+.header-actions .el-button {
   font-size: 13px;
-}
-
-.header-actions .el-button--primary {
-  background: #FF6B6B;
-  border-color: #FF6B6B;
-  border-radius: 6px;
-}
-
-.header-actions .el-button--primary:hover {
-  background: #ff5252;
-  border-color: #ff5252;
 }
 
 .app-main {
@@ -360,9 +360,23 @@ body {
   gap: 8px;
 }
 
-.drawer-actions .el-button {
+.drawer-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  justify-content: flex-start;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  color: #1a1a1a;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drawer-action-btn:hover {
+  background: #e0e0e0;
 }
 
 /* Drawer transitions */

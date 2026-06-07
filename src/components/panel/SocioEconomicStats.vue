@@ -243,6 +243,7 @@ onMounted(() => {
   initCharts()
   loading.value = false
   window.addEventListener('resize', handleResize)
+  window.addEventListener('chart-replay', () => { structureInstance?.clear(); populationInstance?.clear(); gdpInstance?.clear(); updateCharts() })
 })
 
 onUnmounted(() => {
@@ -262,6 +263,7 @@ function handleResize() {
 <style scoped>
 .socio-panel {
   padding: 12px;
+  background: #1a1a1a;
 }
 
 .panel-title {

@@ -97,12 +97,12 @@ function init() {
   }
 }
 
-onMounted(() => { init(); loading.value = false })
-onUnmounted(() => { scatter?.dispose() })
+onMounted(() => { init(); loading.value = false; window.addEventListener('chart-replay', () => { scatter?.clear(); init() }) })
+onUnmounted(() => { scatter?.dispose(); window.removeEventListener('chart-replay', () => {}) })
 </script>
 
 <style scoped>
-.sr-panel { padding: 12px; }
+.sr-panel { padding: 12px; background: #1a1a1a; }
 .panel-title { font-size: 13px; font-weight: 600; color: #ddd; margin: 0 0 10px 0; }
 .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .stat-card { background: #252525; border-radius: 8px; padding: 10px; text-align: center; }

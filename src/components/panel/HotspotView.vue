@@ -55,12 +55,12 @@ function updateChart() {
     }],
   })
 }
-onMounted(() => { initChart(); loading.value = false; window.addEventListener('resize', () => barInstance?.resize()) })
-onUnmounted(() => { barInstance?.dispose(); window.removeEventListener('resize', () => {}) })
+onMounted(() => { initChart(); loading.value = false; window.addEventListener('resize', () => barInstance?.resize()); window.addEventListener('chart-replay', () => { barInstance?.clear(); updateChart() }) })
+onUnmounted(() => { barInstance?.dispose(); window.removeEventListener('resize', () => {}); window.removeEventListener('chart-replay', () => {}) })
 </script>
 
 <style scoped>
-.hotspot-panel { padding: 12px; }
+.hotspot-panel { padding: 12px; background: #1a1a1a; }
 .panel-title { font-size: 14px; font-weight: 600; color: #ddd; margin: 0 0 12px 0; }
 .stat-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
 .stat-card { background: #252525; border-radius: 8px; padding: 12px; text-align: center; }

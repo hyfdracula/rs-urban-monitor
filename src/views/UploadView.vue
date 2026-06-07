@@ -17,7 +17,7 @@
       >
         <el-icon class="upload-icon"><UploadFilled /></el-icon>
         <div class="upload-text">拖拽文件到此处 或 点击选择</div>
-        <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)，单文件 ≤500MB</div>
+        <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)</div>
       </el-upload>
 
       <div class="file-list" v-if="fileList.length">
@@ -158,11 +158,6 @@ function onFileChange(file) {
   const ext = file.name.toLowerCase().split('.').pop()
   if (!['tif', 'tiff', 'zip'].includes(ext)) {
     ElMessage.error('只支持 .tif/.tiff/.zip 文件')
-    return false
-  }
-  // Validate file size (500MB)
-  if (file.size > 500 * 1024 * 1024) {
-    ElMessage.error('文件大小不能超过 500MB')
     return false
   }
   fileList.value.push(file)

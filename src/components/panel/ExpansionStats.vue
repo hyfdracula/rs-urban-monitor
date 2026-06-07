@@ -174,10 +174,12 @@ onMounted(() => {
   initCharts()
   loading.value = false
   window.addEventListener('resize', handleResize)
+  window.addEventListener('chart-replay', () => { pieInstance?.clear(); barInstance?.clear(); updateCharts() })
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('chart-replay', () => { updateCharts() })
   pieInstance?.dispose()
   barInstance?.dispose()
 })
@@ -191,6 +193,7 @@ function handleResize() {
 <style scoped>
 .stat-panel {
   padding: 12px;
+  background: #1a1a1a;
 }
 
 .panel-title {

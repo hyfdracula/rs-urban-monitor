@@ -20,7 +20,7 @@ const d = getOverviewData()
 </script>
 
 <style scoped>
-.dashboard { padding: 14px; }
+.dashboard { padding: 14px; background: #1a1a1a; }
 .title { font-size: 14px; font-weight: 600; color: #ddd; margin: 0 0 14px 0; }
 .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .card { background: #252525; border-radius: 8px; padding: 14px; text-align: center; }

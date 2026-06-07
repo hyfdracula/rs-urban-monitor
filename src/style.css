@@ -27,6 +27,19 @@ body {
   --el-table-header-text-color: #aaa;
 }
 
+/* Element Plus loading dark theme */
+.el-loading-mask {
+  background-color: rgba(13, 13, 13, 0.8) !important;
+}
+
+.el-loading-spinner .circular .path {
+  stroke: #666 !important;
+}
+
+.el-loading-spinner .el-loading-text {
+  color: #888 !important;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

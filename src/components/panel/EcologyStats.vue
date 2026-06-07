@@ -245,6 +245,7 @@ onMounted(() => {
   initCharts()
   loading.value = false
   window.addEventListener('resize', handleResize)
+  window.addEventListener('chart-replay', () => { gradeInstance?.clear(); trendInstance?.clear(); changeInstance?.clear(); radarInstance?.clear(); updateCharts() })
 })
 
 onUnmounted(() => {
@@ -266,6 +267,7 @@ function handleResize() {
 <style scoped>
 .ecology-panel {
   padding: 12px;
+  background: #1a1a1a;
 }
 
 .panel-title {

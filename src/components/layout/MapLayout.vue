@@ -32,23 +32,14 @@
           <span v-else>◨</span>
         </button>
 
-        <!-- Mobile: panel toggle -->
-        <button
-          v-if="isMobile"
-          class="mobile-panel-toggle"
-          @click="showMobilePanel = !showMobilePanel"
-        >
-          {{ showMobilePanel ? '✕' : '☰' }}
-        </button>
-
         <!-- Panel toggle button (always visible) -->
         <button
           class="panel-toggle-btn"
-          :class="{ 'panel-open': !isFullscreen }"
+          :class="{ 'panel-open': isMobile ? showMobilePanel : !isFullscreen }"
           @click="toggleFullscreen"
           :title="isFullscreen ? '显示面板' : '隐藏面板'"
         >
-          <span v-if="isFullscreen">◧</span>
+          <span v-if="(isMobile && !showMobilePanel) || (!isMobile && isFullscreen)">◧</span>
           <span v-else>◨</span>
         </button>
 
@@ -77,11 +68,14 @@
             </button>
           </div>
           <div class="panel-body">
-            <Transition name="slide" mode="out-in">
-              <div :key="activeTab" class="panel-scroll">
-                <slot :name="activeTab" />
-              </div>
-            </Transition>
+            <div
+              v-for="tab in tabs"
+              :key="tab.key"
+              class="panel-scroll"
+              :class="{ active: activeTab === tab.key }"
+            >
+              <slot :name="tab.key" />
+            </div>
           </div>
         </div>
       </div>
@@ -92,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import LegendBar from '../map/LegendBar.vue'
 
 const props = defineProps({
@@ -109,7 +103,21 @@ const legendCollapsed = ref(false)
 
 provide('isFullscreen', isFullscreen)
 
-function toggleFullscreen() { isFullscreen.value = !isFullscreen.value }
+// Tab切换时触发resize + chart动画重播
+watch(activeTab, (newKey) => {
+  nextTick(() => {
+    window.dispatchEvent(new Event('resize'))
+    window.dispatchEvent(new CustomEvent('chart-replay', { detail: newKey }))
+  })
+})
+
+function toggleFullscreen() {
+  if (isMobile.value) {
+    showMobilePanel.value = !showMobilePanel.value
+  } else {
+    isFullscreen.value = !isFullscreen.value
+  }
+}
 function checkMobile() {
   isMobile.value = window.innerWidth < 768
   if (!isMobile.value) showMobilePanel.value = true
@@ -179,13 +187,6 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
 .panel-toggle-btn:hover { color: #fff; border-color: #FFD43B; }
 .panel-toggle-btn.panel-open { right: 328px; }
 
-.mobile-panel-toggle {
-  display: none; position: absolute; bottom: 60px; right: 12px;
-  width: 40px; height: 40px; background: rgba(26,26,26,0.9);
-  border: 1px solid #444; border-radius: 50%; color: #fff;
-  font-size: 16px; cursor: pointer; z-index: 15;
-}
-
 .right-panel {
   position: absolute; top: 0; right: 0; bottom: 0;
   width: 320px; background: #1a1a1a;
@@ -223,18 +224,28 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
 .tab-btn:nth-child(5).active { border-bottom-color: #BE4BDB; }
 .tab-btn:nth-child(6).active { border-bottom-color: #4DABF7; }
 .tab-btn:nth-child(7).active { border-bottom-color: #20C997; }
-/* Tab dot indicator */
-.tab-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-/* Tab text — hidden on mobile, shown on desktop */
+/* Tab dot indicator — hidden on all devices */
+.tab-dot { display: none; }
+/* Tab text */
 .tab-label { white-space: nowrap; }
-.panel-body { flex: 1; min-height: 0; overflow: hidden; }
-.panel-scroll { height: 100%; overflow-y: auto; }
+.panel-body { flex: 1; min-height: 0; overflow: hidden; background: #1a1a1a; }
+.panel-scroll {
+  height: 100%;
+  overflow-y: auto;
+  background: #1a1a1a;
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.panel-scroll.active {
+  position: relative;
+  visibility: visible;
+  pointer-events: auto;
+}
 .panel-scroll::-webkit-scrollbar { width: 4px; }
 .panel-scroll::-webkit-scrollbar-track { background: transparent; }
 .panel-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
-.slide-enter-active,.slide-leave-active { transition: all 0.2s ease; }
-.slide-enter-from { opacity: 0; transform: translateX(12px); }
-.slide-leave-to { opacity: 0; transform: translateX(-12px); }
 
 @media (max-width: 767px) {
   .layer-control-area { width: 160px; left: 6px; }
@@ -250,10 +261,10 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
     transition: transform 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.4);
   }
   .right-panel.open { transform: translateX(0); }
-  .mobile-panel-toggle { display: flex; align-items: center; justify-content: center; }
-  /* Hide tab text on mobile, show only dots */
-  .tab-label { display: none; }
+  .tab-label { font-size: 11px; }
   .tab-btn { padding: 12px 6px; }
   .tab-overview { padding: 12px 6px; }
+  /* Panel toggle button follows panel on mobile */
+  .panel-toggle-btn.panel-open { right: calc(min(85vw, 360px) + 8px); }
 }
 </style>
