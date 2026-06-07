@@ -45,3 +45,24 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Mobile touch-friendly targets */
+@media (max-width: 767px) {
+  button,
+  a,
+  .el-button,
+  .nav-item,
+  .tab-btn,
+  .el-menu-item {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on interactive elements */
+  .nav-menu,
+  .panel-tabs,
+  .mobile-drawer {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}

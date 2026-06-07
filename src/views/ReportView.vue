@@ -412,4 +412,46 @@ onUnmounted(() => {
   color: #fff;
   border-color: #666;
 }
+
+/* Mobile responsive */
+@media (max-width: 767px) {
+  .report-header {
+    padding: 16px;
+  }
+
+  .report-header h1 {
+    font-size: 18px;
+  }
+
+  .report-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .report-content {
+    padding: 16px;
+  }
+
+  .report-section h2 {
+    font-size: 16px;
+  }
+
+  .section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-box.full-width {
+    grid-column: span 1;
+  }
+
+  .chart {
+    height: 180px;
+  }
+
+  .data-table {
+    overflow-x: auto;
+  }
+}
 </style>

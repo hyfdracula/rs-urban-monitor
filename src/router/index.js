@@ -8,18 +8,6 @@ const routes = [
     meta: { title: '总览' },
   },
   {
-    path: '/expansion',
-    name: 'Expansion',
-    component: () => import('../views/ExpansionView.vue'),
-    meta: { title: '城市扩张分析' },
-  },
-  {
-    path: '/ecology',
-    name: 'Ecology',
-    component: () => import('../views/EcologyView.vue'),
-    meta: { title: '生态环境评估' },
-  },
-  {
     path: '/compare',
     name: 'Compare',
     component: () => import('../views/CompareView.vue'),

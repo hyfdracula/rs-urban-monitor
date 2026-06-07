@@ -1,27 +1,36 @@
 <template>
   <div v-loading="loading" class="sr-panel">
+    <h3 class="panel-title">耦合响应</h3>
+
+    <!-- Correlation indicator cards -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-value" :style="{ color: corrColor }">{{ correlation }}</div>
+        <div class="stat-label">扩张—生态相关系数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ coupledCities }}</div>
+        <div class="stat-label">强负相关城市</div>
+      </div>
+    </div>
+
     <div class="chart-section">
       <h4 class="section-title">扩张速率 vs RSEI 变化</h4>
       <div ref="scatterChart" class="chart-container" />
-    </div>
-    <div class="chart-section">
-      <h4 class="section-title">RSEI 四维指标</h4>
-      <div ref="radarChart" class="chart-container" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { getReportData, getRadarData } from '../../data/mockAnalysis'
+import { getReportData } from '../../data/mockAnalysis'
 import { DISTRICTS } from '../../data/districts'
 
 const emit = defineEmits(['district-click'])
 
 const scatterChart = ref(null)
-const radarChart = ref(null)
-let scatter = null, radar = null
+let scatter = null
 const loading = ref(true)
 
 function findCityCenter(name) {
@@ -30,10 +39,45 @@ function findCityCenter(name) {
   return found?.center || null
 }
 
+const scatterData = computed(() => getReportData().scatterData || [])
+
+// Compute Pearson correlation coefficient
+const correlation = computed(() => {
+  const data = scatterData.value
+  if (!data || data.length < 2) return '—'
+  const xs = data.map(d => d[0])
+  const ys = data.map(d => d[1])
+  const n = xs.length
+  const meanX = xs.reduce((a, b) => a + b, 0) / n
+  const meanY = ys.reduce((a, b) => a + b, 0) / n
+  let num = 0, denX = 0, denY = 0
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - meanX
+    const dy = ys[i] - meanY
+    num += dx * dy
+    denX += dx * dx
+    denY += dy * dy
+  }
+  const r = num / Math.sqrt(denX * denY)
+  return r.toFixed(3)
+})
+
+const corrColor = computed(() => {
+  const r = parseFloat(correlation.value)
+  if (isNaN(r)) return '#888'
+  if (r < -0.5) return '#FF6B6B'
+  if (r < -0.2) return '#FFD43B'
+  return '#69DB7C'
+})
+
+const coupledCities = computed(() => {
+  return scatterData.value.filter(d => d[1] < -0.05).length
+})
+
 function init() {
   if (scatterChart.value) {
     scatter = echarts.init(scatterChart.value)
-    const data = getReportData().scatterData
+    const data = scatterData.value
     scatter.setOption({
       backgroundColor: 'transparent', tooltip: { trigger: 'item', formatter: (p) => `${p.data.name}<br/>扩张速率: ${p.value[0]}%<br/>RSEI变化: ${p.value[1]}` },
       grid: { left: '8%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
@@ -46,54 +90,25 @@ function init() {
         emphasis: { focus: 'self', itemStyle: { shadowBlur: 10, shadowColor: 'rgba(255,255,255,0.3)' } },
       }],
     })
-    // Click scatter point → fly to city
     scatter.on('click', (params) => {
       const center = findCityCenter(params.data?.name)
-      if (center) {
-        emit('district-click', { name: params.data.name, center })
-      }
-    })
-  }
-  if (radarChart.value) {
-    radar = echarts.init(radarChart.value)
-    const rd = getRadarData()
-    radar.setOption({
-      backgroundColor: 'transparent', tooltip: {},
-      legend: { bottom: 0, textStyle: { color: '#888', fontSize: 10 } },
-      radar: {
-        center: ['50%', '45%'], radius: '60%',
-        indicator: [
-          { name: '绿度', max: 1 }, { name: '湿度', max: 1 }, { name: '干度', max: 1 }, { name: '热度', max: 1 },
-        ],
-        axisName: { color: '#aaa', fontSize: 10 },
-        shape: 'circle', splitNumber: 4,
-        axisLine: { lineStyle: { color: '#444' } },
-        splitLine: { lineStyle: { color: '#333' } },
-        splitArea: { areaStyle: { color: ['#1a1a1a', '#1a1a1a'] } },
-      },
-      series: rd.slice(0, 4).map(d => ({
-        type: 'radar', name: d.city,
-        data: [{ value: [d.ndvi, d.wet, d.ndbsi, d.lst], name: d.city }],
-        symbol: 'circle', symbolSize: 4,
-        lineStyle: { width: 1.5 },
-      })),
-    })
-    // Click radar series → fly to city
-    radar.on('click', (params) => {
-      const center = findCityCenter(params.name)
-      if (center) {
-        emit('district-click', { name: params.name, center })
-      }
+      if (center) emit('district-click', { name: params.data.name, center })
     })
   }
 }
+
 onMounted(() => { init(); loading.value = false })
-onUnmounted(() => { scatter?.dispose(); radar?.dispose() })
+onUnmounted(() => { scatter?.dispose() })
 </script>
 
 <style scoped>
 .sr-panel { padding: 12px; }
+.panel-title { font-size: 13px; font-weight: 600; color: #ddd; margin: 0 0 10px 0; }
+.stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-card { background: #252525; border-radius: 8px; padding: 10px; text-align: center; }
+.stat-value { font-size: 22px; font-weight: 700; color: #fff; }
+.stat-label { font-size: 11px; color: #888; margin-top: 4px; }
 .section-title { font-size: 12px; font-weight: 600; color: #aaa; margin: 0 0 8px 0; }
 .chart-section { margin-bottom: 16px; }
-.chart-container { height: 220px; background: #252525; border-radius: 8px; }
+.chart-container { height: 240px; background: #252525; border-radius: 8px; }
 </style>

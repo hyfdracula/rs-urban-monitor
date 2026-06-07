@@ -23,13 +23,17 @@
       <h4 class="section-title">生态变化面积</h4>
       <div ref="changeChart" class="chart-container" />
     </div>
+    <div class="chart-section">
+      <h4 class="section-title">RSEI 四维指标</h4>
+      <div ref="radarChart" class="chart-container radar" />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
-import { getEcologyData } from '../../data/mockAnalysis'
+import { getEcologyData, getRadarData } from '../../data/mockAnalysis'
 
 const props = defineProps({
   data: {
@@ -41,9 +45,11 @@ const props = defineProps({
 const gradeChart = ref(null)
 const trendChart = ref(null)
 const changeChart = ref(null)
+const radarChart = ref(null)
 let gradeInstance = null
 let trendInstance = null
 let changeInstance = null
+let radarInstance = null
 const loading = ref(true)
 
 const ecologyData = ref(props.data)
@@ -83,6 +89,10 @@ function initCharts() {
   if (changeChart.value) {
     changeInstance = echarts.init(changeChart.value)
     updateChangeChart()
+  }
+  if (radarChart.value) {
+    radarInstance = echarts.init(radarChart.value)
+    updateRadarChart()
   }
 }
 
@@ -196,6 +206,39 @@ function updateCharts() {
   updateGradeChart()
   updateTrendChart()
   updateChangeChart()
+  updateRadarChart()
+}
+
+function updateRadarChart() {
+  if (!radarInstance) return
+  const rd = getRadarData()
+  radarInstance.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {},
+    legend: { bottom: 0, textStyle: { color: '#888', fontSize: 10 } },
+    radar: {
+      center: ['50%', '45%'],
+      radius: '60%',
+      indicator: [
+        { name: '绿度', max: 1 }, { name: '湿度', max: 1 },
+        { name: '干度', max: 1 }, { name: '热度', max: 1 },
+      ],
+      axisName: { color: '#aaa', fontSize: 10 },
+      shape: 'circle',
+      splitNumber: 4,
+      axisLine: { lineStyle: { color: '#444' } },
+      splitLine: { lineStyle: { color: '#333' } },
+      splitArea: { areaStyle: { color: ['#1a1a1a', '#1a1a1a'] } },
+    },
+    series: rd.slice(0, 4).map(d => ({
+      type: 'radar',
+      name: d.city,
+      data: [{ value: [d.ndvi, d.wet, d.ndbsi, d.lst], name: d.city }],
+      symbol: 'circle',
+      symbolSize: 4,
+      lineStyle: { width: 1.5 },
+    })),
+  })
 }
 
 onMounted(() => {
@@ -209,12 +252,14 @@ onUnmounted(() => {
   gradeInstance?.dispose()
   trendInstance?.dispose()
   changeInstance?.dispose()
+  radarInstance?.dispose()
 })
 
 function handleResize() {
   gradeInstance?.resize()
   trendInstance?.resize()
   changeInstance?.resize()
+  radarInstance?.resize()
 }
 </script>
 
@@ -271,5 +316,9 @@ function handleResize() {
   height: 150px;
   background: #252525;
   border-radius: 8px;
+}
+
+.chart-container.radar {
+  height: 220px;
 }
 </style>

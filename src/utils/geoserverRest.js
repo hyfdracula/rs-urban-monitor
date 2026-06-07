@@ -46,11 +46,27 @@ export async function ensureWorkspace(name) {
 // =============================================================
 
 /**
- * List all layers in a workspace
+ * List all layers in a workspace (both vector and raster)
  */
 export async function listLayers(workspace) {
   const resp = await restClient.get(`/workspaces/${workspace}/layers.json`)
   return resp.data.layers?.layer || []
+}
+
+/**
+ * List all coverage stores (raster layers) in a workspace
+ */
+export async function listCoverageStores(workspace) {
+  const resp = await restClient.get(`/workspaces/${workspace}/coveragestores.json`)
+  return resp.data.coverageStores?.coverageStore || []
+}
+
+/**
+ * List all data stores (vector layers) in a workspace
+ */
+export async function listDataStores(workspace) {
+  const resp = await restClient.get(`/workspaces/${workspace}/datastores.json`)
+  return resp.data.dataStores?.dataStore || []
 }
 
 /**
@@ -204,6 +220,114 @@ export async function deleteLayer(workspace, layerName) {
       `/workspaces/${workspace}/datastores/${dataStoreName}.json?recurse=true`
     )
   } catch (e) {
+    // store may not exist
+  }
+}
+
+// =============================================================
+// Publish raster: GeoTIFF → coverageStore + coverageLayer
+// =============================================================
+
+/**
+ * Upload a GeoTIFF file to GeoServer and auto-publish as WMS layer.
+ * GeoServer creates the coverageStore and layer automatically.
+ *
+ * @param {string} workspace - GeoServer workspace name
+ * @param {string} layerName - Desired layer/store name
+ * @param {File} file - The .tif/.tiff file from input
+ * @param {function} [onProgress] - axios onUploadProgress callback
+ * @returns {Promise<{workspace, layerName, wmsUrl}>}
+ */
+export async function uploadGeoTIFF(workspace, layerName, file, onProgress) {
+  await ensureWorkspace(workspace)
+
+  const storeName = `${layerName}_store`
+
+  await restClient.put(
+    `/workspaces/${workspace}/coveragestores/${storeName}/file.geotiff`,
+    file,
+    {
+      headers: { 'Content-Type': 'image/tiff' },
+      onUploadProgress: onProgress,
+      timeout: 300000, // 5 min for large rasters
+    }
+  )
+
+  return {
+    workspace,
+    layerName,
+    wmsUrl: `${GEOSERVER_CONFIG.wmsUrl}?service=WMS&version=1.1.1&request=GetMap&layers=${workspace}:${layerName}&srs=EPSG:4326&width=800&height=600&format=image/png`,
+  }
+}
+
+// =============================================================
+// Publish vector: Shapefile (.zip) → dataStore + featureType
+// =============================================================
+
+/**
+ * Upload a Shapefile (.zip containing .shp/.shx/.dbf/.prj) to GeoServer.
+ * GeoServer creates the dataStore and feature type automatically.
+ *
+ * @param {string} workspace - GeoServer workspace name
+ * @param {string} layerName - Desired layer/store name
+ * @param {File} file - The .zip file containing shapefile components
+ * @param {function} [onProgress] - axios onUploadProgress callback
+ * @returns {Promise<{workspace, layerName, wmsUrl, wfsUrl}>}
+ */
+export async function uploadShapefile(workspace, layerName, file, onProgress) {
+  await ensureWorkspace(workspace)
+
+  const storeName = `${layerName}_store`
+
+  await restClient.put(
+    `/workspaces/${workspace}/datastores/${storeName}/file.shp`,
+    file,
+    {
+      headers: { 'Content-Type': 'application/zip' },
+      onUploadProgress: onProgress,
+      timeout: 300000,
+    }
+  )
+
+  return {
+    workspace,
+    layerName,
+    wmsUrl: `${GEOSERVER_CONFIG.wmsUrl}?service=WMS&version=1.1.1&request=GetMap&layers=${workspace}:${layerName}&srs=EPSG:4326&width=800&height=600&format=image/png`,
+    wfsUrl: `${GEOSERVER_CONFIG.baseUrl}/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=${workspace}:${layerName}&outputFormat=application/json`,
+  }
+}
+
+// =============================================================
+// Delete coverage store (raster layer)
+// =============================================================
+
+/**
+ * Delete a coverage store and its associated layer.
+ *
+ * @param {string} workspace - GeoServer workspace name
+ * @param {string} storeName - Coverage store name
+ */
+export async function deleteCoverageStore(workspace, storeName) {
+  try {
+    // Delete the coverage (layer) first
+    const coverages = await restClient.get(
+      `/workspaces/${workspace}/coveragestores/${storeName}/coverages.json`
+    )
+    const coverageList = coverages.data?.coverages?.coverage || []
+    for (const c of coverageList) {
+      await restClient.delete(
+        `/workspaces/${workspace}/coveragestores/${storeName}/coverages/${c.name}.json?recurse=true`
+      )
+    }
+  } catch {
+    // coverage may not exist
+  }
+
+  try {
+    await restClient.delete(
+      `/workspaces/${workspace}/coveragestores/${storeName}.json?recurse=true`
+    )
+  } catch {
     // store may not exist
   }
 }

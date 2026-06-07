@@ -8,10 +8,10 @@
     </template>
     <template #dashboard><DashboardView /></template>
     <template #expansion><ExpansionStats :data="expansionData" @district-click="flyToDistrict" /></template>
-    <template #ecology><EcologyStats :data="ecologyData" /></template>
-    <template #socio><SocioEconomicStats :data="socioData" @district-click="flyToDistrict" /></template>
     <template #hotspot><HotspotView :data="hotspotData" @district-click="flyToDistrict" /></template>
+    <template #ecology><EcologyStats :data="ecologyData" /></template>
     <template #scatter><ScatterRadarView @district-click="flyToDistrict" /></template>
+    <template #socio><SocioEconomicStats :data="socioData" @district-click="flyToDistrict" /></template>
     <template #ranking><TownshipRanking /></template>
     <template #timeline>
       <TimelineSelector v-model="selectedYear" @change="onYearChange" />
@@ -47,12 +47,12 @@ const hotspotData = ref(getHotspotData())
 
 const tabs = [
   { key: 'dashboard', label: '总览', color: '#FFD43B' },
-  { key: 'expansion', label: '建设扩张', color: '#FF6B6B' },
-  { key: 'ecology', label: '生态环境', color: '#51CF66' },
-  { key: 'scatter', label: '关联分析', color: '#BE4BDB' },
+  { key: 'expansion', label: '建设用地', color: '#FF6B6B' },
+  { key: 'hotspot', label: '热点分析', color: '#FF922B' },
+  { key: 'ecology', label: '生态评估', color: '#51CF66' },
+  { key: 'scatter', label: '耦合响应', color: '#BE4BDB' },
   { key: 'socio', label: '社会经济', color: '#4DABF7' },
-  { key: 'hotspot', label: '热点乡镇', color: '#FF922B' },
-  { key: 'ranking', label: '乡镇排名', color: '#20C997' },
+  { key: 'ranking', label: '分区统计', color: '#20C997' },
 ]
 
 function onMapLoaded(map) {}

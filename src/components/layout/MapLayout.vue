@@ -4,11 +4,33 @@
       <div class="map-area">
         <slot name="map" />
 
-        <!-- Left sidebar: LayerControl + Legend stacked -->
-        <div class="overlay-left">
+        <!-- Layer control: fixed position, independent -->
+        <div class="layer-control-area" :class="{ collapsed: layerControlCollapsed }">
           <slot name="layer-control" />
+        </div>
+        <button
+          class="layer-control-toggle"
+          :class="{ 'panel-open': !layerControlCollapsed }"
+          @click="layerControlCollapsed = !layerControlCollapsed"
+          :title="layerControlCollapsed ? '展开图层控制' : '收起图层控制'"
+        >
+          <span v-if="layerControlCollapsed">◧</span>
+          <span v-else>◨</span>
+        </button>
+
+        <!-- Legend: fixed position, independent of layer control -->
+        <div class="legend-area" :class="{ collapsed: legendCollapsed }">
           <LegendBar />
         </div>
+        <button
+          class="legend-toggle"
+          :class="{ 'panel-open': !legendCollapsed }"
+          @click="legendCollapsed = !legendCollapsed"
+          :title="legendCollapsed ? '展开图例' : '收起图例'"
+        >
+          <span v-if="legendCollapsed">◧</span>
+          <span v-else>◨</span>
+        </button>
 
         <!-- Mobile: panel toggle -->
         <button
@@ -40,7 +62,7 @@
               @click="activeTab = tabs[0].key"
             >
               <span class="tab-dot" :style="{ background: tabs[0].color }" />
-              <span>{{ tabs[0].label }}</span>
+              <span class="tab-label">{{ tabs[0].label }}</span>
             </button>
             <!-- Remaining 6 tabs: 3 per row -->
             <button
@@ -51,7 +73,7 @@
               @click="activeTab = tab.key"
             >
               <span class="tab-dot" :style="{ background: tab.color }" />
-              <span>{{ tab.label }}</span>
+              <span class="tab-label">{{ tab.label }}</span>
             </button>
           </div>
           <div class="panel-body">
@@ -82,6 +104,8 @@ const activeTab = ref(props.defaultTab || props.tabs[0]?.key || '')
 const isMobile = ref(false)
 const showMobilePanel = ref(false)
 const isFullscreen = ref(false)
+const layerControlCollapsed = ref(false)
+const legendCollapsed = ref(false)
 
 provide('isFullscreen', isFullscreen)
 
@@ -99,10 +123,50 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
 .main-row { flex: 1; position: relative; min-height: 0; }
 .map-area { position: absolute; inset: 0; }
 
-.overlay-left {
+/* ===== Left side: Layer Control ===== */
+.layer-control-area {
   position: absolute; top: 12px; left: 12px; width: 200px; z-index: 10;
-  display: flex; flex-direction: column; gap: 8px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
+.layer-control-area.collapsed {
+  transform: translateX(-100%); opacity: 0;
+  pointer-events: none;
+}
+
+.layer-control-toggle {
+  position: absolute; top: 12px; left: 220px;
+  width: 34px; height: 34px; background: rgba(26,26,26,0.9);
+  border: 1px solid #444; border-radius: 8px; color: #aaa;
+  font-size: 18px; cursor: pointer; z-index: 11;
+  backdrop-filter: blur(8px); transition: left 0.3s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.layer-control-toggle:hover { color: #fff; border-color: #FFD43B; }
+.layer-control-toggle.panel-open { left: 220px; }
+/* When collapsed, button slides to where panel edge was */
+.layer-control-toggle:not(.panel-open) { left: 12px; }
+
+/* ===== Left side: Legend (fixed position, independent) ===== */
+.legend-area {
+  position: absolute; top: 410px; left: 12px; width: 200px; z-index: 10;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.legend-area.collapsed {
+  transform: translateX(-100%); opacity: 0;
+  pointer-events: none;
+}
+
+.legend-toggle {
+  position: absolute; top: 410px; left: 220px;
+  width: 34px; height: 34px; background: rgba(26,26,26,0.9);
+  border: 1px solid #444; border-radius: 8px; color: #aaa;
+  font-size: 18px; cursor: pointer; z-index: 11;
+  backdrop-filter: blur(8px); transition: left 0.3s ease, top 0.3s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.legend-toggle:hover { color: #fff; border-color: #FFD43B; }
+.legend-toggle.panel-open { left: 220px; }
+.legend-toggle:not(.panel-open) { left: 12px; }
 
 .panel-toggle-btn {
   position: absolute; top: 8px; right: 12px; transform: none;
@@ -154,12 +218,15 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
 .tab-overview.active { border-bottom-color: #FFD43B; }
 /* Active colors by position in grid */
 .tab-btn:nth-child(2).active { border-bottom-color: #FF6B6B; }
-.tab-btn:nth-child(3).active { border-bottom-color: #51CF66; }
-.tab-btn:nth-child(4).active { border-bottom-color: #BE4BDB; }
-.tab-btn:nth-child(5).active { border-bottom-color: #4DABF7; }
-.tab-btn:nth-child(6).active { border-bottom-color: #FF922B; }
+.tab-btn:nth-child(3).active { border-bottom-color: #FF922B; }
+.tab-btn:nth-child(4).active { border-bottom-color: #51CF66; }
+.tab-btn:nth-child(5).active { border-bottom-color: #BE4BDB; }
+.tab-btn:nth-child(6).active { border-bottom-color: #4DABF7; }
 .tab-btn:nth-child(7).active { border-bottom-color: #20C997; }
+/* Tab dot indicator */
 .tab-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+/* Tab text — hidden on mobile, shown on desktop */
+.tab-label { white-space: nowrap; }
 .panel-body { flex: 1; min-height: 0; overflow: hidden; }
 .panel-scroll { height: 100%; overflow-y: auto; }
 .panel-scroll::-webkit-scrollbar { width: 4px; }
@@ -170,13 +237,23 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
 .slide-leave-to { opacity: 0; transform: translateX(-12px); }
 
 @media (max-width: 767px) {
-  .overlay-left { width: 160px; left: 6px; }
+  .layer-control-area { width: 160px; left: 6px; }
+  .layer-control-toggle.panel-open { left: 174px; }
+  .layer-control-toggle:not(.panel-open) { left: 6px; }
+  .legend-area { width: 160px; left: 6px; top: 370px; }
+  .legend-toggle { top: 370px; }
+  .legend-toggle.panel-open { left: 174px; }
+  .legend-toggle:not(.panel-open) { left: 6px; }
   .right-panel {
-    position: fixed; top: 56px; right: 0; bottom: 60px;
-    width: 280px; z-index: 20; transform: translateX(100%);
+    position: fixed; top: 48px; right: 0; bottom: 0;
+    width: min(85vw, 360px); z-index: 20; transform: translateX(100%);
     transition: transform 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.4);
   }
   .right-panel.open { transform: translateX(0); }
   .mobile-panel-toggle { display: flex; align-items: center; justify-content: center; }
+  /* Hide tab text on mobile, show only dots */
+  .tab-label { display: none; }
+  .tab-btn { padding: 12px 6px; }
+  .tab-overview { padding: 12px 6px; }
 }
 </style>
