@@ -1,75 +1,93 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="数据上传"
-    width="560px"
+    :title="dialogTitle"
+    :width="dialogWidth"
     :close-on-click-modal="false"
     class="upload-dialog"
   >
     <div class="dialog-body">
-      <p class="hint">上传 GeoTIFF 或 Shapefile 至 GeoServer 发布为 WMS 服务</p>
+      <!-- Mode Selection -->
+      <ModeSelection v-if="!currentMode" @select="currentMode = $event" />
 
-      <el-upload
-        class="upload-area"
-        drag
-        :auto-upload="false"
-        :on-change="onFileChange"
-        :on-remove="onFileRemove"
-        :file-list="fileList"
-        accept=".tif,.tiff,.zip"
-        :limit="5"
-      >
-        <el-icon class="upload-icon"><UploadFilled /></el-icon>
-        <div class="upload-text">拖拽文件到此处 或 点击选择</div>
-        <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)</div>
-      </el-upload>
+      <!-- Manual Mode Wizard -->
+      <ManualModeWizard v-else-if="currentMode === 'manual'" @back="currentMode = null" />
 
-      <div class="file-list" v-if="fileList.length">
-        <div v-for="f in fileList" :key="f.uid" class="file-item">
-          <span class="file-name">{{ f.name }}</span>
-          <span class="file-size">{{ formatSize(f.size) }}</span>
-          <el-tag v-if="getFileType(f.name)" size="small" :type="getFileTag(f.name)">
-            {{ getFileType(f.name) }}
-          </el-tag>
-        </div>
-      </div>
+      <!-- Auto Mode Wizard -->
+      <AutoModeWizard v-else-if="currentMode === 'auto'" @back="currentMode = null" @done="onAutoDone" />
 
-      <!-- Progress -->
-      <div v-if="uploadTasks.length" class="progress-list">
-        <div v-for="t in uploadTasks" :key="t.id" class="progress-item">
-          <div class="progress-info">
-            <span class="progress-name">{{ t.name }}</span>
-            <span class="progress-status" :class="t.status">{{ statusText(t.status) }}</span>
-          </div>
-          <div v-if="t.status === 'uploading'" class="progress-bar">
-            <div class="progress-fill" :style="{ width: t.progress + '%' }" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Published layers -->
-      <div class="layers-section" v-if="publishedLayers.length">
-        <div class="layers-header">
-          <span class="layers-title">已发布图层</span>
-          <el-button size="small" text @click="refreshLayers">
-            <el-icon><Refresh /></el-icon>
+      <!-- GeoServer Upload -->
+      <template v-else-if="currentMode === 'geoserver'">
+        <div class="geoserver-header">
+          <el-button text size="small" @click="currentMode = null">
+            <el-icon><ArrowLeft /></el-icon>
+            返回
           </el-button>
+          <span class="geoserver-title">上传至 GeoServer</span>
         </div>
-        <div class="layers-list">
-          <div v-for="layer in publishedLayers" :key="layer.name" class="layer-item">
-            <span class="layer-name">{{ layer.name }}</span>
-            <el-tag size="small" :type="layer.type === 'raster' ? 'warning' : 'success'">
-              {{ layer.type === 'raster' ? '栅格' : '矢量' }}
+
+        <el-upload
+          class="upload-area"
+          drag
+          :auto-upload="false"
+          :on-change="onFileChange"
+          :on-remove="onFileRemove"
+          :file-list="fileList"
+          accept=".tif,.tiff,.zip"
+          :limit="5"
+        >
+          <el-icon class="upload-icon"><UploadFilled /></el-icon>
+          <div class="upload-text">拖拽文件到此处 或 点击选择</div>
+          <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)</div>
+        </el-upload>
+
+        <div class="file-list" v-if="fileList.length">
+          <div v-for="f in fileList" :key="f.uid" class="file-item">
+            <span class="file-name">{{ f.name }}</span>
+            <span class="file-size">{{ formatSize(f.size) }}</span>
+            <el-tag v-if="getFileType(f.name)" size="small" :type="getFileTag(f.name)">
+              {{ getFileType(f.name) }}
             </el-tag>
-            <el-button size="small" type="danger" text @click="deleteLayerItem(layer)">
-              删除
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div v-if="uploadTasks.length" class="progress-list">
+          <div v-for="t in uploadTasks" :key="t.id" class="progress-item">
+            <div class="progress-info">
+              <span class="progress-name">{{ t.name }}</span>
+              <span class="progress-status" :class="t.status">{{ statusText(t.status) }}</span>
+            </div>
+            <div v-if="t.status === 'uploading'" class="progress-bar">
+              <div class="progress-fill" :style="{ width: t.progress + '%' }" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Published layers -->
+        <div class="layers-section" v-if="publishedLayers.length">
+          <div class="layers-header">
+            <span class="layers-title">已发布图层</span>
+            <el-button size="small" text @click="refreshLayers">
+              <el-icon><Refresh /></el-icon>
             </el-button>
           </div>
+          <div class="layers-list">
+            <div v-for="layer in publishedLayers" :key="layer.name" class="layer-item">
+              <span class="layer-name">{{ layer.name }}</span>
+              <el-tag size="small" :type="layer.type === 'raster' ? 'warning' : 'success'">
+                {{ layer.type === 'raster' ? '栅格' : '矢量' }}
+              </el-tag>
+              <el-button size="small" type="danger" text @click="deleteLayerItem(layer)">
+                删除
+              </el-button>
+            </div>
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
-    <template #footer>
+    <template #footer v-if="currentMode === 'geoserver'">
       <el-button @click="visible = false">关闭</el-button>
       <el-button
         type="primary"
@@ -80,12 +98,16 @@
         {{ uploading ? '上传中...' : '上传并发布' }}
       </el-button>
     </template>
+    <template #footer v-else>
+      <el-button @click="visible = false">关闭</el-button>
+    </template>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { UploadFilled, Refresh } from '@element-plus/icons-vue'
+import { ref, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowLeft, UploadFilled, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   uploadGeoTIFF,
@@ -96,11 +118,15 @@ import {
   deleteLayer as deleteVectorLayer,
 } from '../../utils/geoserverRest'
 import { GEOSERVER_CONFIG } from '../../config/map'
+import ModeSelection from '../upload/ModeSelection.vue'
+import ManualModeWizard from '../upload/ManualModeWizard.vue'
+import AutoModeWizard from '../upload/AutoModeWizard.vue'
 
 const props = defineProps({ modelValue: { type: Boolean, default: false } })
 const emit = defineEmits(['update:modelValue'])
 
 const visible = ref(false)
+const currentMode = ref(null)
 const fileList = ref([])
 const uploading = ref(false)
 const uploadTasks = ref([])
@@ -108,10 +134,30 @@ const publishedLayers = ref([])
 const loadingLayers = ref(false)
 
 const WORKSPACE = GEOSERVER_CONFIG.workspace
+const router = useRouter()
+
+function onAutoDone({ taskId, wmsUrls }) {
+  visible.value = false
+  router.push('/custom-area')
+}
+
+const dialogTitle = computed(() => {
+  if (!currentMode.value) return '数据接入'
+  if (currentMode.value === 'manual') return '手动模式 — GEE 代码生成'
+  return '数据上传'
+})
+
+const dialogWidth = computed(() => {
+  if (currentMode.value === 'manual') return '720px'
+  return '560px'
+})
 
 watch(() => props.modelValue, (val) => {
   visible.value = val
-  if (val) refreshLayers()
+  if (val) {
+    currentMode.value = null
+    refreshLayers()
+  }
 })
 watch(visible, (val) => { emit('update:modelValue', val) })
 
@@ -226,7 +272,13 @@ async function deleteLayerItem(layer) {
 <style scoped>
 .dialog-body { max-height: 60vh; overflow-y: auto; }
 
-.hint { color: #888; font-size: 13px; margin: 0 0 16px 0; }
+.geoserver-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.geoserver-title { color: #ccc; font-size: 13px; font-weight: 500; }
 
 .upload-area { border: 1px dashed #444; border-radius: 8px; background: #222; }
 .upload-area:hover { border-color: #666; }

@@ -14,6 +14,12 @@ const routes = [
     meta: { title: '双期对比' },
   },
   {
+    path: '/custom-area',
+    name: 'CustomArea',
+    component: () => import('../views/CustomAreaView.vue'),
+    meta: { title: '自定义研究区' },
+  },
+  {
     path: '/upload',
     name: 'Upload',
     component: () => import('../views/UploadView.vue'),
@@ -24,6 +30,12 @@ const routes = [
     name: 'Report',
     component: () => import('../views/ReportView.vue'),
     meta: { title: '分析报告' },
+  },
+  {
+    path: '/analysis/:taskId',
+    name: 'Analysis',
+    component: () => import('../views/AnalysisView.vue'),
+    meta: { title: '分析结果' },
   },
   {
     path: '/:pathMatch(.*)*',

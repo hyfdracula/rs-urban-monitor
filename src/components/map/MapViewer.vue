@@ -57,7 +57,7 @@ const popupStyle = computed(() => ({
   top: popupPosition.value.y + 'px',
   transform: 'translate(-50%, -110%)',
   position: 'absolute',
-  zIndex: 20,
+  zIndex: 10,
 }))
 
 async function onMapClick(e) {

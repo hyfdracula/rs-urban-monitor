@@ -1,122 +1,124 @@
 <template>
   <div class="upload-page" :class="{ mobile: isMobile }">
-    <!-- Upload card -->
-    <div class="upload-card">
-      <h2>数据上传</h2>
-      <p class="desc">上传 GeoTIFF 或 Shapefile 至 GeoServer 发布为 WMS 服务</p>
+    <!-- Mode Selection (default) -->
+    <ModeSelection v-if="!currentMode" @select="currentMode = $event" />
 
-      <el-upload
-        class="upload-area"
-        drag
-        :auto-upload="false"
-        :on-change="onFileChange"
-        :on-remove="onFileRemove"
-        :file-list="fileList"
-        accept=".tif,.tiff,.zip"
-        :limit="5"
-      >
-        <el-icon class="upload-icon"><UploadFilled /></el-icon>
-        <div class="upload-text">拖拽文件到此处 或 点击选择</div>
-        <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)</div>
-      </el-upload>
-
-      <div class="file-list" v-if="fileList.length">
-        <div v-for="f in fileList" :key="f.uid" class="file-item">
-          <span class="file-name">{{ f.name }}</span>
-          <span class="file-size">{{ formatSize(f.size) }}</span>
-          <el-tag v-if="getFileType(f.name)" size="small" :type="getFileTag(f.name)">
-            {{ getFileType(f.name) }}
-          </el-tag>
-        </div>
-      </div>
-
-      <el-button
-        type="primary"
-        :loading="uploading"
-        :disabled="fileList.length === 0"
-        @click="startUpload"
-        class="upload-btn"
-      >
-        {{ uploading ? '上传中...' : '上传并发布' }}
-      </el-button>
-
-      <!-- Progress bars for each file -->
-      <div v-if="uploadTasks.length" class="progress-list">
-        <div v-for="t in uploadTasks" :key="t.id" class="progress-item">
-          <div class="progress-info">
-            <span class="progress-name">{{ t.name }}</span>
-            <span class="progress-status" :class="t.status">
-              {{ statusText(t.status) }}
-            </span>
-          </div>
-          <div v-if="t.status === 'uploading'" class="progress-bar">
-            <div class="progress-fill" :style="{ width: t.progress + '%' }" />
-          </div>
-        </div>
-      </div>
+    <!-- Manual Mode Wizard -->
+    <div v-else-if="currentMode === 'manual'" class="mode-content">
+      <ManualModeWizard @back="currentMode = null" />
     </div>
 
-    <!-- Published layers list -->
-    <div class="layers-card">
-      <h3>已发布图层</h3>
-      <el-button size="small" text @click="refreshLayers">
-        <el-icon><Refresh /></el-icon>
-        <span>刷新</span>
-      </el-button>
+    <!-- Auto Mode Wizard -->
+    <div v-else-if="currentMode === 'auto'" class="mode-content">
+      <AutoModeWizard @back="currentMode = null" @done="onAutoDone" />
+    </div>
 
-      <div v-if="loadingLayers" class="layers-loading">
-        <el-icon class="is-loading"><Loading /></el-icon>
-        <span>加载中...</span>
-      </div>
-
-      <div v-else-if="publishedLayers.length === 0" class="layers-empty">
-        暂无已发布图层
-      </div>
-
-      <div v-else class="layers-list">
-        <div v-for="layer in publishedLayers" :key="layer.name" class="layer-item">
-          <span class="layer-name">{{ layer.name }}</span>
-          <el-tag size="small" :type="layer.type === 'raster' ? 'warning' : 'success'">
-            {{ layer.type === 'raster' ? '栅格' : '矢量' }}
-          </el-tag>
-          <el-button
-            size="small"
-            type="danger"
-            text
-            @click="deleteLayer(layer)"
-            :loading="layer.deleting"
-          >
-            删除
+    <!-- GeoServer Upload (existing) -->
+    <template v-else-if="currentMode === 'geoserver'">
+      <div class="upload-card">
+        <div class="card-header">
+          <el-button text size="small" @click="currentMode = null">
+            <el-icon><ArrowLeft /></el-icon>
+            返回
           </el-button>
+          <h2>数据上传</h2>
+        </div>
+        <p class="desc">上传 GeoTIFF 或 Shapefile 至 GeoServer 发布为 WMS 服务</p>
+
+        <el-upload
+          class="upload-area"
+          drag
+          :auto-upload="false"
+          :on-change="onFileChange"
+          :on-remove="onFileRemove"
+          :file-list="fileList"
+          accept=".tif,.tiff,.zip"
+          :limit="5"
+        >
+          <el-icon class="upload-icon"><UploadFilled /></el-icon>
+          <div class="upload-text">拖拽文件到此处 或 点击选择</div>
+          <div class="upload-hint">支持 .tif .tiff .zip (含 .shp)</div>
+        </el-upload>
+
+        <div class="file-list" v-if="fileList.length">
+          <div v-for="f in fileList" :key="f.uid" class="file-item">
+            <span class="file-name">{{ f.name }}</span>
+            <span class="file-size">{{ formatSize(f.size) }}</span>
+            <el-tag v-if="getFileType(f.name)" size="small" :type="getFileTag(f.name)">
+              {{ getFileType(f.name) }}
+            </el-tag>
+          </div>
+        </div>
+
+        <el-button
+          type="primary"
+          :loading="uploading"
+          :disabled="fileList.length === 0"
+          @click="startUpload"
+          class="upload-btn"
+        >
+          {{ uploading ? '上传中...' : '上传并发布' }}
+        </el-button>
+
+        <!-- Progress bars -->
+        <div v-if="uploadTasks.length" class="progress-list">
+          <div v-for="t in uploadTasks" :key="t.id" class="progress-item">
+            <div class="progress-info">
+              <span class="progress-name">{{ t.name }}</span>
+              <span class="progress-status" :class="t.status">
+                {{ statusText(t.status) }}
+              </span>
+            </div>
+            <div v-if="t.status === 'uploading'" class="progress-bar">
+              <div class="progress-fill" :style="{ width: t.progress + '%' }" />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Layer name prompt dialog -->
-    <el-dialog
-      v-model="showNameDialog"
-      title="输入图层名称"
-      width="360px"
-      :close-on-click-modal="false"
-    >
-      <p class="dialog-hint">请为 {{ currentFile?.name }} 设置发布后的图层名：</p>
-      <el-input
-        v-model="layerNameInput"
-        placeholder="例如: construction_2020"
-        :maxlength="50"
-        clearable
-      />
-      <template #footer>
-        <el-button @click="showNameDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmUpload">确认上传</el-button>
-      </template>
-    </el-dialog>
+      <!-- Published layers list -->
+      <div class="layers-card">
+        <h3>已发布图层</h3>
+        <el-button size="small" text @click="refreshLayers">
+          <el-icon><Refresh /></el-icon>
+          <span>刷新</span>
+        </el-button>
+
+        <div v-if="loadingLayers" class="layers-loading">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>加载中...</span>
+        </div>
+
+        <div v-else-if="publishedLayers.length === 0" class="layers-empty">
+          暂无已发布图层
+        </div>
+
+        <div v-else class="layers-list">
+          <div v-for="layer in publishedLayers" :key="layer.name" class="layer-item">
+            <span class="layer-name">{{ layer.name }}</span>
+            <el-tag size="small" :type="layer.type === 'raster' ? 'warning' : 'success'">
+              {{ layer.type === 'raster' ? '栅格' : '矢量' }}
+            </el-tag>
+            <el-button
+              size="small"
+              type="danger"
+              text
+              @click="deleteLayer(layer)"
+              :loading="layer.deleting"
+            >
+              删除
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { UploadFilled, Refresh, Loading } from '@element-plus/icons-vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowLeft, UploadFilled, Refresh, Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   uploadGeoTIFF,
@@ -127,7 +129,11 @@ import {
   deleteLayer as deleteVectorLayer,
 } from '../utils/geoserverRest'
 import { GEOSERVER_CONFIG } from '../config/map'
+import ModeSelection from '../components/upload/ModeSelection.vue'
+import ManualModeWizard from '../components/upload/ManualModeWizard.vue'
+import AutoModeWizard from '../components/upload/AutoModeWizard.vue'
 
+const currentMode = ref(null) // null | 'manual' | 'auto' | 'geoserver'
 const fileList = ref([])
 const uploading = ref(false)
 const uploadTasks = ref([])
@@ -135,13 +141,13 @@ const publishedLayers = ref([])
 const loadingLayers = ref(false)
 const isMobile = ref(false)
 
-// Layer name dialog
-const showNameDialog = ref(false)
-const currentFile = ref(null)
-const layerNameInput = ref('')
-const uploadQueue = ref([])
-
 const WORKSPACE = GEOSERVER_CONFIG.workspace
+const router = useRouter()
+
+function onAutoDone({ taskId, wmsUrls, url }) {
+  ElMessage.success(`分析完成！已生成 ${Object.keys(wmsUrls || {}).length} 个图层`)
+  router.push(url || `/analysis/${taskId}`)
+}
 
 function checkMobile() {
   isMobile.value = window.innerWidth < 768
@@ -154,7 +160,6 @@ onMounted(() => {
 })
 
 function onFileChange(file) {
-  // Validate file type
   const ext = file.name.toLowerCase().split('.').pop()
   if (!['tif', 'tiff', 'zip'].includes(ext)) {
     ElMessage.error('只支持 .tif/.tiff/.zip 文件')
@@ -184,8 +189,7 @@ function getFileType(name) {
 }
 
 function getFileTag(name) {
-  const type = getFileType(name)
-  return type === '栅格' ? 'warning' : 'success'
+  return getFileType(name) === '栅格' ? 'warning' : 'success'
 }
 
 function statusText(status) {
@@ -195,36 +199,25 @@ function statusText(status) {
 async function startUpload() {
   if (fileList.value.length === 0) return
 
-  uploadQueue.value = [...fileList.value]
-  fileList.value = []
   uploading.value = true
   uploadTasks.value = []
 
-  for (const file of uploadQueue.value) {
+  for (const file of [...fileList.value]) {
     await uploadSingleFile(file)
   }
 
+  fileList.value = []
   uploading.value = false
   refreshLayers()
 }
 
 async function uploadSingleFile(file) {
-  // Generate layer name from filename
-  const baseName = file.name.replace(/\.(tif|tiff|zip)$/i, '').replace(/[^a-zA-Z0-9_]/g, '_')
-  const layerName = baseName.toLowerCase()
-
+  const layerName = file.name.replace(/\.(tif|tiff|zip)$/i, '').replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase()
   const taskId = Date.now() + Math.random()
-  const task = {
-    id: taskId,
-    name: file.name,
-    status: 'uploading',
-    progress: 0,
-  }
+  const task = { id: taskId, name: file.name, status: 'uploading', progress: 0 }
   uploadTasks.value.push(task)
 
-  const onProgress = (e) => {
-    task.progress = Math.round((e.loaded / e.total) * 100)
-  }
+  const onProgress = (e) => { task.progress = Math.round((e.loaded / e.total) * 100) }
 
   try {
     const ext = file.name.toLowerCase().split('.').pop()
@@ -238,7 +231,6 @@ async function uploadSingleFile(file) {
     ElMessage.success(`${file.name} 发布成功`)
   } catch (err) {
     task.status = 'error'
-    console.error('Upload failed:', err)
     ElMessage.error(`${file.name} 上传失败: ${err.response?.data || err.message}`)
   }
 }
@@ -248,7 +240,6 @@ async function refreshLayers() {
   publishedLayers.value = []
 
   try {
-    // Get raster layers (coverage stores)
     const rasterStores = await listCoverageStores(WORKSPACE)
     for (const s of rasterStores) {
       publishedLayers.value.push({
@@ -259,10 +250,8 @@ async function refreshLayers() {
       })
     }
 
-    // Get vector layers (data stores)
     const vectorStores = await listDataStores(WORKSPACE)
     for (const s of vectorStores) {
-      // Skip GeoJSON stores created by publishGeoJSON (they have '_store' suffix)
       if (s.name.endsWith('_store')) {
         publishedLayers.value.push({
           name: s.name.replace('_store', ''),
@@ -273,11 +262,9 @@ async function refreshLayers() {
       }
     }
 
-    // Sort by name
     publishedLayers.value.sort((a, b) => a.name.localeCompare(b.name))
   } catch (err) {
     console.error('Failed to list layers:', err)
-    ElMessage.error('获取图层列表失败')
   }
 
   loadingLayers.value = false
@@ -294,7 +281,6 @@ async function deleteLayer(layer) {
     ElMessage.success(`图层 ${layer.name} 已删除`)
     refreshLayers()
   } catch (err) {
-    console.error('Delete failed:', err)
     ElMessage.error(`删除失败: ${err.response?.data || err.message}`)
   }
   layer.deleting = false
@@ -311,6 +297,23 @@ async function deleteLayer(layer) {
   flex-direction: column;
   align-items: center;
   gap: 24px;
+}
+
+.mode-content {
+  width: 100%;
+  max-width: 700px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-header h2 {
+  color: #ddd;
+  margin: 0;
 }
 
 .upload-card {
@@ -474,12 +477,6 @@ async function deleteLayer(layer) {
   flex: 1;
   color: #bbb;
   font-size: 13px;
-}
-
-.dialog-hint {
-  color: #888;
-  font-size: 13px;
-  margin-bottom: 12px;
 }
 
 /* Mobile responsive */

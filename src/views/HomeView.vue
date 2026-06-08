@@ -2,6 +2,7 @@
   <MapLayout :tabs="tabs" default-tab="dashboard">
     <template #map>
       <MapViewer ref="mapRef" @map-loaded="onMapLoaded" @feature-click="onFeatureClick" />
+      <BottomBar :items="bottomItems" />
     </template>
     <template #layer-control>
       <LayerControl ref="layerControlRef" @layer-toggle="onLayerToggle" @mode-toggle="onModeToggle" />
@@ -21,8 +22,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Switch } from '@element-plus/icons-vue'
 import MapLayout from '../components/layout/MapLayout.vue'
 import MapViewer from '../components/map/MapViewer.vue'
+import BottomBar from '../components/layout/BottomBar.vue'
 import LayerControl from '../components/map/LayerControl.vue'
 import TimelineSelector from '../components/map/TimelineSelector.vue'
 import ExpansionStats from '../components/panel/ExpansionStats.vue'
@@ -44,6 +47,10 @@ const expansionData = ref(getExpansionData())
 const ecologyData = ref(getEcologyData())
 const socioData = ref(getSocioEconomicData())
 const hotspotData = ref(getHotspotData())
+
+const bottomItems = [
+  { key: 'compare', label: '双期对比', icon: Switch, to: '/compare' },
+]
 
 const tabs = [
   { key: 'dashboard', label: '总览', color: '#FFD43B' },

@@ -1,65 +1,121 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="导出 PDF 报告"
-    width="460px"
+    title="分析报告"
+    width="760px"
     :close-on-click-modal="false"
     class="export-dialog"
   >
     <div class="dialog-body">
-      <!-- Report title -->
-      <div class="field">
-        <label class="field-label">报告标题</label>
-        <el-input
-          v-model="reportTitle"
-          size="small"
-          placeholder="城市扩张与生态环境分析报告"
-        />
+      <!-- Tabs: 查看 / 导出 -->
+      <div class="tab-bar">
+        <button class="tab-btn" :class="{ active: tab === 'view' }" @click="tab = 'view'">
+          📊 查看报告
+        </button>
+        <button class="tab-btn" :class="{ active: tab === 'export' }" @click="tab = 'export'">
+          📥 导出 PDF
+        </button>
       </div>
 
-      <!-- Sections toggle -->
-      <div class="field">
-        <label class="field-label">包含板块</label>
-        <el-checkbox-group v-model="selectedSections">
-          <div
-            v-for="s in availableSections"
-            :key="s.key"
-            class="section-check"
-          >
-            <el-checkbox :value="s.key" size="small">
-              <span class="check-icon">{{ s.icon }}</span>
-              <span class="check-label">{{ s.label }}</span>
-            </el-checkbox>
+      <!-- Tab: 查看报告 -->
+      <div v-if="tab === 'view'" class="report-content">
+        <div class="section-grid">
+          <div class="chart-box">
+            <h3>扩张模式占比</h3>
+            <div ref="modeChart" class="chart" />
           </div>
-        </el-checkbox-group>
+          <div class="chart-box">
+            <h3>区县扩张排名</h3>
+            <div ref="rankChart" class="chart" />
+          </div>
+        </div>
+        <div class="data-table">
+          <div class="table-header">
+            <span class="table-title">城市扩张数据</span>
+          </div>
+          <el-table :data="expansionTable" stripe size="small" max-height="180">
+            <el-table-column prop="district" label="区县" width="100" />
+            <el-table-column prop="newArea" label="新增面积(km²)" width="120" />
+            <el-table-column prop="rate" label="扩张速率(%)" width="120" />
+            <el-table-column prop="intensity" label="扩张强度" width="100" />
+            <el-table-column prop="mode" label="主导模式" />
+          </el-table>
+        </div>
+
+        <div class="section-grid">
+          <div class="chart-box">
+            <h3>RSEI 时序变化</h3>
+            <div ref="rseiTrendChart" class="chart" />
+          </div>
+          <div class="chart-box">
+            <h3>生态等级分布</h3>
+            <div ref="gradeChart" class="chart" />
+          </div>
+        </div>
+        <div class="data-table">
+          <div class="table-header">
+            <span class="table-title">生态等级数据</span>
+          </div>
+          <el-table :data="ecologyTable" stripe size="small" max-height="140">
+            <el-table-column prop="grade" label="等级" width="80" />
+            <el-table-column prop="area" label="面积(km²)" width="100" />
+            <el-table-column prop="percent" label="占比(%)" width="100" />
+            <el-table-column prop="change" label="较上期变化" />
+          </el-table>
+        </div>
+
+        <div class="chart-box full-width">
+          <h3>扩张速率 vs RSEI 变化</h3>
+          <div ref="scatterChart" class="chart" />
+        </div>
       </div>
 
-      <!-- Include map screenshot -->
-      <div class="field">
-        <label class="field-label">附加内容</label>
-        <el-checkbox v-model="includeMap" size="small">
-          <span class="check-icon">🗺️</span>
-          <span class="check-label">地图截图（封面页）</span>
-        </el-checkbox>
+      <!-- Tab: 导出 PDF -->
+      <div v-if="tab === 'export'" class="export-config">
+        <div class="field">
+          <label class="field-label">报告标题</label>
+          <el-input v-model="reportTitle" size="small" placeholder="城市扩张与生态环境分析报告" />
+        </div>
+        <div class="field">
+          <label class="field-label">包含板块</label>
+          <el-checkbox-group v-model="selectedSections">
+            <div v-for="s in availableSections" :key="s.key" class="section-check">
+              <el-checkbox :value="s.key" size="small">
+                <span class="check-icon">{{ s.icon }}</span>
+                <span class="check-label">{{ s.label }}</span>
+              </el-checkbox>
+            </div>
+          </el-checkbox-group>
+        </div>
+        <div class="field">
+          <label class="field-label">附加内容</label>
+          <el-checkbox v-model="includeMap" size="small">
+            <span class="check-icon">🗺️</span>
+            <span class="check-label">地图截图（封面页）</span>
+          </el-checkbox>
+        </div>
       </div>
     </div>
 
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="visible = false">取消</el-button>
-        <el-button type="primary" :loading="generating" @click="doExport">
-          <el-icon><Download /></el-icon>
-          <span>{{ generating ? '正在生成...' : '导出 PDF' }}</span>
-        </el-button>
-      </div>
+      <el-button @click="visible = false">{{ tab === 'export' ? '取消' : '关闭' }}</el-button>
+      <el-button v-if="tab === 'export'" type="primary" :loading="generating" @click="doExport">
+        <el-icon><Download /></el-icon>
+        <span>{{ generating ? '正在生成...' : '导出 PDF' }}</span>
+      </el-button>
+      <el-button v-else type="primary" @click="tab = 'export'">
+        <el-icon><Download /></el-icon>
+        <span>导出 PDF</span>
+      </el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { Download } from '@element-plus/icons-vue'
-import { buildPdfReport, downloadPdf, captureElement, captureMap, REPORT_SECTIONS } from '../../utils/pdfReport'
+import * as echarts from 'echarts'
+import { buildPdfReport, downloadPdf, captureElement, captureMap } from '../../utils/pdfReport'
 import { getReportData } from '../../data/mockAnalysis'
 import { getSocioEconomicData } from '../../data/mockSocioEconomic'
 
@@ -74,6 +130,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const visible = ref(false)
+const tab = ref('view')
 const generating = ref(false)
 const reportTitle = ref('城市扩张与生态环境分析报告')
 const selectedSections = ref(['expansion', 'ecology', 'socio', 'correlation'])
@@ -86,177 +143,234 @@ const availableSections = [
   { key: 'correlation', icon: '🔗', label: '扩张与生态关联分析' },
 ]
 
-watch(() => props.modelValue, (val) => { visible.value = val })
+const reportData = getReportData()
+const expansionTable = ref(reportData.expansionTable)
+const ecologyTable = ref(reportData.ecologyTable)
+
+// Chart refs
+const modeChart = ref(null)
+const rankChart = ref(null)
+const rseiTrendChart = ref(null)
+const gradeChart = ref(null)
+const scatterChart = ref(null)
+
+let instances = []
+
+watch(() => props.modelValue, (val) => {
+  visible.value = val
+  if (val) {
+    tab.value = 'view'
+    nextTick(() => initCharts())
+  }
+})
 watch(visible, (val) => { emit('update:modelValue', val) })
+
+function initCharts() {
+  // Dispose old
+  instances.forEach(i => i.dispose())
+  instances = []
+
+  const dark = { backgroundColor: 'transparent' }
+
+  if (modeChart.value) {
+    const inst = echarts.init(modeChart.value)
+    inst.setOption({
+      ...dark,
+      tooltip: { trigger: 'item' },
+      series: [{
+        type: 'pie', radius: ['40%', '70%'],
+        data: reportData.modeDistribution.map(item => ({
+          name: item.name, value: item.value, itemStyle: { color: item.color },
+        })),
+        label: { color: '#ccc', fontSize: 11 },
+      }],
+    })
+    instances.push(inst)
+  }
+
+  if (rankChart.value) {
+    const inst = echarts.init(rankChart.value)
+    inst.setOption({
+      ...dark,
+      tooltip: { trigger: 'axis' },
+      grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
+      xAxis: { type: 'value', axisLabel: { color: '#888' }, axisLine: { lineStyle: { color: '#444' } } },
+      yAxis: {
+        type: 'category',
+        data: reportData.districtRanking.map(i => i.name).reverse(),
+        axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
+      },
+      series: [{
+        type: 'bar',
+        data: reportData.districtRanking.map(i => i.value).reverse(),
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#FF6B6B' }, { offset: 1, color: '#FFA94D' },
+          ]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      }],
+    })
+    instances.push(inst)
+  }
+
+  if (rseiTrendChart.value) {
+    const inst = echarts.init(rseiTrendChart.value)
+    inst.setOption({
+      ...dark,
+      tooltip: { trigger: 'axis' },
+      grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
+      xAxis: {
+        type: 'category', data: reportData.rseiTrend.map(i => i.year),
+        axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
+      },
+      yAxis: {
+        type: 'value', min: 0, max: 1,
+        axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: '#333' } },
+      },
+      series: [{
+        type: 'line', data: reportData.rseiTrend.map(i => i.value), smooth: true,
+        lineStyle: { color: '#51CF66', width: 2 }, itemStyle: { color: '#51CF66' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(81,207,102,0.3)' }, { offset: 1, color: 'rgba(81,207,102,0.05)' },
+          ]),
+        },
+      }],
+    })
+    instances.push(inst)
+  }
+
+  if (gradeChart.value) {
+    const inst = echarts.init(gradeChart.value)
+    inst.setOption({
+      ...dark,
+      tooltip: { trigger: 'axis' },
+      grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
+      xAxis: {
+        type: 'category', data: reportData.ecologyGradeDistribution.map(i => i.grade),
+        axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
+      },
+      yAxis: { type: 'value', axisLabel: { color: '#888' } },
+      series: [{
+        type: 'bar', barWidth: '50%',
+        data: reportData.ecologyGradeDistribution.map(i => ({ value: i.area, itemStyle: { color: i.color } })),
+      }],
+    })
+    instances.push(inst)
+  }
+
+  if (scatterChart.value) {
+    const inst = echarts.init(scatterChart.value)
+    inst.setOption({
+      ...dark,
+      tooltip: { trigger: 'item' },
+      grid: { left: '3%', right: '4%', bottom: '10%', top: '10%', containLabel: true },
+      xAxis: {
+        name: '扩张速率(%)', nameTextStyle: { color: '#888' },
+        axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: '#333' } },
+      },
+      yAxis: {
+        name: 'RSEI变化', nameTextStyle: { color: '#888' },
+        axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: '#333' } },
+      },
+      series: [{
+        type: 'scatter', symbolSize: 16,
+        data: reportData.scatterData,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
+            { offset: 0, color: '#FF6B6B' }, { offset: 1, color: '#4DABF7' },
+          ]),
+        },
+      }],
+    })
+    instances.push(inst)
+  }
+
+  // Handle resize
+  const onResize = () => instances.forEach(i => i.resize())
+  window.addEventListener('resize', onResize)
+}
+
+onUnmounted(() => {
+  instances.forEach(i => i.dispose())
+})
 
 async function doExport() {
   if (selectedSections.value.length === 0) return
   generating.value = true
-
   try {
-    // Use provided chart refs or auto-capture from DOM
-    const sectionRefs = props.chartRefs && Object.keys(props.chartRefs).length > 0
-      ? props.chartRefs
-      : null
-
-    // Capture all chart elements for selected sections
-    const chartImages = {}
-
-    if (sectionRefs) {
-      // Use provided refs
-      for (const key of selectedSections.value) {
-        const refs = sectionRefs[key] || []
-        chartImages[key] = []
-        for (const ref of refs) {
-          let img = null
-          if (ref.dataUrl) {
-            img = ref.dataUrl
-          } else if (ref.element) {
-            img = await captureElement(ref.element)
-          }
-          if (img) {
-            chartImages[key].push({
-              dataUrl: img,
-              width: ref.width || 600,
-              height: ref.height || 300,
-              label: ref.label || '',
-            })
-          }
-        }
-      }
-    } else {
-      // Auto-capture from DOM: grab all .chart-container elements
-      const allChartEls = document.querySelectorAll('.chart-container')
-      const capturedCharts = []
-      for (const el of allChartEls) {
-        const parent = el.closest('.stat-panel, .ecology-panel, .socio-panel')
-        let sectionKey = 'expansion'
-        if (parent) {
-          if (parent.classList.contains('ecology-panel')) sectionKey = 'ecology'
-          else if (parent.classList.contains('socio-panel')) sectionKey = 'socio'
-          else sectionKey = 'expansion'
-        }
-        const img = await captureElement(el)
-        if (img) {
-          capturedCharts.push({ key: sectionKey, dataUrl: img, width: 600, height: 300, label: '' })
-        }
-      }
-      for (const key of selectedSections.value) {
-        chartImages[key] = capturedCharts.filter(c => c.key === key).map(c => ({
-          dataUrl: c.dataUrl, width: c.width, height: c.height, label: c.label,
-        }))
-      }
-    }
-
-    // Capture map: try provided ref > auto-detect canvas in .map-container
-    let mapImg = null
-    if (includeMap.value) {
-      const mapEl = props.mapRef || document.querySelector('.map-container canvas')
-      mapImg = await captureMap(mapEl)
-    }
-
-    // Build sections for the PDF
+    const socioData = getSocioEconomicData()
     const sections = []
 
-    // If map included, add it first
-    if (mapImg) {
-      sections.push({
-        key: 'map',
-        title: '研究区概况',
-        charts: [{ dataUrl: mapImg, width: 800, height: 400, label: '研究区遥感影像' }],
-      })
+    // Map screenshot
+    if (includeMap.value) {
+      const mapEl = props.mapRef || document.querySelector('.map-container canvas')
+      const mapImg = await captureMap(mapEl)
+      if (mapImg) {
+        sections.push({
+          key: 'map', title: '研究区概况',
+          charts: [{ dataUrl: mapImg, width: 800, height: 400, label: '研究区遥感影像' }],
+        })
+      }
     }
 
-    // Load data from centralized sources
-    const reportData = getReportData()
-    const socioData = getSocioEconomicData()
-
-    // Expansion section
+    // Expansion
     if (selectedSections.value.includes('expansion')) {
-      const exp = reportData
       sections.push({
-        key: 'expansion',
-        title: '建设用地扩张分析',
+        key: 'expansion', title: '建设用地扩张分析',
         cards: [
-          { value: `${exp.expansionTable[0]?.newArea || 0} km²`, label: '新增建设用地' },
-          { value: `${exp.expansionTable.length}个城市`, label: '研究城市数' },
-          { value: '0.50 km²', label: '平均斑块规模' },
-          { value: '3.15%', label: '年均扩张速率' },
+          { value: `${reportData.expansionTable[0]?.newArea || 0} km²`, label: '新增建设用地' },
+          { value: `${reportData.expansionTable.length}个城市`, label: '研究城市数' },
         ],
-        charts: chartImages.expansion || [],
         table: {
           headers: ['城市', '新增(km²)', '速率(%)', '强度', '主导模式'],
-          rows: (exp.expansionTable || []).slice(0, 8).map(r => [
+          rows: (reportData.expansionTable || []).slice(0, 8).map(r => [
             r.district, String(r.newArea), String(r.rate), String(r.intensity), r.mode,
           ]),
         },
       })
     }
 
-    // Ecology section
+    // Ecology
     if (selectedSections.value.includes('ecology')) {
-      const eco = reportData
       sections.push({
-        key: 'ecology',
-        title: '生态环境评估',
-        cards: [
-          { value: '0.58', label: 'RSEI 均值' },
-          { value: '-0.07', label: 'RSEI 变化' },
-        ],
-        charts: chartImages.ecology || [],
+        key: 'ecology', title: '生态环境评估',
+        cards: [{ value: '0.58', label: 'RSEI 均值' }, { value: '-0.07', label: 'RSEI 变化' }],
         table: {
           headers: ['等级', '面积(km²)', '占比(%)', '较上期变化'],
-          rows: (eco.ecologyTable || []).map(r => [
-            r.grade, String(r.area), `${r.percent}%`, r.change,
-          ]),
+          rows: (reportData.ecologyTable || []).map(r => [r.grade, String(r.area), `${r.percent}%`, r.change]),
         },
       })
     }
 
-    // Socio-economic section
+    // Socio
     if (selectedSections.value.includes('socio')) {
-      const s = socioData
       sections.push({
-        key: 'socio',
-        title: '社会经济分析',
+        key: 'socio', title: '社会经济分析',
         cards: [
-          { value: `${s.population.total}万`, label: '常住人口' },
-          { value: `${s.gdp.total}万亿`, label: 'GDP总量' },
-          { value: `${s.population.growth}%`, label: '人口增长率' },
-          { value: `${s.gdp.growth}%`, label: 'GDP增速' },
+          { value: `${socioData.population.total}万`, label: '常住人口' },
+          { value: `${socioData.gdp.total}万亿`, label: 'GDP总量' },
         ],
-        charts: chartImages.socio || [],
         table: {
           headers: ['城市', '人口(万)', 'GDP(亿元)'],
-          rows: (s.districtPopulation || []).slice(0, 8).map((d, i) => [
-            d.name, String(d.value), String((s.districtGdp[i]?.value / 10000 || 0).toFixed(1)) + '万亿',
+          rows: (socioData.districtPopulation || []).slice(0, 8).map((d, i) => [
+            d.name, String(d.value), String((socioData.districtGdp[i]?.value / 10000 || 0).toFixed(1)) + '万亿',
           ]),
         },
       })
     }
 
-    // Correlation section
-    if (selectedSections.value.includes('correlation') && chartImages.correlation?.length) {
-      sections.push({
-        key: 'correlation',
-        title: '扩张与生态关联分析',
-        charts: chartImages.correlation || [],
-      })
-    }
-
-    // Build and download
     const doc = await buildPdfReport({
       title: reportTitle.value,
       studyArea: props.studyArea,
       timeRange: props.timeRange,
       sections,
     })
-
     downloadPdf(doc, `${reportTitle.value}.pdf`)
     visible.value = false
   } catch (err) {
     console.error('PDF generation failed:', err)
-    alert('PDF 生成失败: ' + err.message)
   } finally {
     generating.value = false
   }
@@ -264,38 +378,41 @@ async function doExport() {
 </script>
 
 <style scoped>
-.dialog-body {
-  padding: 4px 0;
-}
+.dialog-body { max-height: 70vh; overflow-y: auto; }
 
-.field {
-  margin-bottom: 16px;
+.tab-bar {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: #222; border-radius: 8px; padding: 3px;
 }
-
-.field-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #ccc;
-  margin-bottom: 8px;
+.tab-btn {
+  flex: 1; padding: 8px; border: none; border-radius: 6px;
+  background: none; color: #888; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
 }
+.tab-btn:hover { color: #ccc; }
+.tab-btn.active { background: #333; color: #fff; }
 
-.section-check {
-  margin-bottom: 6px;
-}
+/* Report content */
+.report-content { display: flex; flex-direction: column; gap: 16px; }
+.section-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.chart-box { background: #252525; border-radius: 8px; padding: 12px; }
+.chart-box.full-width { grid-column: span 2; }
+.chart-box h3 { font-size: 13px; font-weight: 600; color: #aaa; margin: 0 0 8px; }
+.chart { height: 180px; }
+.data-table { background: #252525; border-radius: 8px; padding: 12px; }
+.table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.table-title { font-size: 13px; font-weight: 600; color: #aaa; }
 
-.check-icon {
-  margin-right: 4px;
-}
+/* Export config */
+.export-config { padding: 4px 0; }
+.field { margin-bottom: 16px; }
+.field-label { display: block; font-size: 13px; font-weight: 600; color: #ccc; margin-bottom: 8px; }
+.section-check { margin-bottom: 6px; }
+.check-icon { margin-right: 4px; }
+.check-label { color: #bbb; font-size: 13px; }
 
-.check-label {
-  color: #bbb;
-  font-size: 13px;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+@media (max-width: 767px) {
+  .section-grid { grid-template-columns: 1fr; }
+  .chart-box.full-width { grid-column: span 1; }
 }
 </style>

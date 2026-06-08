@@ -2,8 +2,8 @@
   <div class="app-layout">
     <header class="app-header">
       <div class="logo">
-        <span class="logo-full">长三角城市扩张与生态响应可视化平台</span>
-        <span class="logo-short">长三角可视化平台</span>
+        <span class="logo-full">北京林业大学之神hyf</span>
+        <span class="logo-short">北林之神</span>
       </div>
       <nav class="nav-menu">
         <router-link
@@ -22,9 +22,13 @@
           <el-icon><Upload /></el-icon>
           <span>上传</span>
         </el-button>
+        <el-button text @click="showGeeConfigDialog = true">
+          <el-icon><Setting /></el-icon>
+          <span>GEE</span>
+        </el-button>
         <el-button text @click="exportMap">
           <el-icon><Download /></el-icon>
-          <span>导出</span>
+          <span>下载</span>
         </el-button>
         <el-button text @click="publishMapService">
           <el-icon><Position /></el-icon>
@@ -63,13 +67,17 @@
             </router-link>
           </div>
           <div class="drawer-actions">
-            <button class="drawer-action-btn" @click="exportMap(); drawerOpen = false">
-              <el-icon><Download /></el-icon>
-              <span>导出报告</span>
-            </button>
             <button class="drawer-action-btn" @click="goUpload(); drawerOpen = false">
               <el-icon><Upload /></el-icon>
               <span>上传数据</span>
+            </button>
+            <button class="drawer-action-btn" @click="showGeeConfigDialog = true; drawerOpen = false">
+              <el-icon><Setting /></el-icon>
+              <span>GEE 配置</span>
+            </button>
+            <button class="drawer-action-btn" @click="exportMap(); drawerOpen = false">
+              <el-icon><Download /></el-icon>
+              <span>导出报告</span>
             </button>
             <button class="drawer-action-btn" @click="publishMapService(); drawerOpen = false">
               <el-icon><Position /></el-icon>
@@ -88,23 +96,25 @@
     <ExportReportDialog v-model="showExportDialog" />
     <UploadDialog v-model="showUploadDialog" />
     <PublishMapDialog v-model="showPublishDialog" />
+    <GeeConfigDialog v-model="showGeeConfigDialog" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Location,
-  Document,
-  Switch,
   Download,
   Upload,
   Position,
+  Setting,
+  Aim,
 } from '@element-plus/icons-vue'
 import ExportReportDialog from './components/dialog/ExportReportDialog.vue'
 import PublishMapDialog from './components/dialog/PublishMapDialog.vue'
 import UploadDialog from './components/dialog/UploadDialog.vue'
+import GeeConfigDialog from './components/dialog/GeeConfigDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -112,12 +122,14 @@ const router = useRouter()
 const showExportDialog = ref(false)
 const showPublishDialog = ref(false)
 const showUploadDialog = ref(false)
+const showGeeConfigDialog = ref(false)
 const drawerOpen = ref(false)
+
+provide('openUploadDialog', () => { showUploadDialog.value = true })
 
 const navItems = [
   { path: '/', title: '总览', icon: 'Location' },
-  { path: '/compare', title: '双期对比', icon: 'Switch' },
-  { path: '/report', title: '分析报告', icon: 'Document' },
+  { path: '/custom-area', title: '自定义研究区', icon: 'Aim' },
 ]
 
 function exportMap() {
