@@ -1,18 +1,13 @@
 import axios from 'axios'
-import { GEOSERVER_CONFIG } from '../config/map'
+import { GEOSERVER_CONFIG } from '../config/map.js'
 
-const REST_BASE = `${GEOSERVER_CONFIG.baseUrl}/rest`
-
-// GeoServer default credentials (standard dev setup)
-const AUTH = {
-  username: 'admin',
-  password: 'geoserver',
-}
+// GeoServer REST 代理：通过后端 /api/geoserver/rest 转发
+// 凭据只存在后端 config，前端无感知
+const REST_BASE = '/api/geoserver/rest'
 
 const restClient = axios.create({
   baseURL: REST_BASE,
   timeout: 60000,
-  auth: AUTH,
   headers: { 'Content-Type': 'application/json' },
 })
 

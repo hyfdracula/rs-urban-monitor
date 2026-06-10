@@ -5,10 +5,11 @@
         <slot name="map" />
 
         <!-- Layer control: fixed position, independent -->
-        <div class="layer-control-area" :class="{ collapsed: layerControlCollapsed }">
+        <div v-if="showLayerControl" class="layer-control-area" :class="{ collapsed: layerControlCollapsed }">
           <slot name="layer-control" />
         </div>
         <button
+          v-if="showLayerControl"
           class="layer-control-toggle"
           :class="{ 'panel-open': !layerControlCollapsed }"
           @click="layerControlCollapsed = !layerControlCollapsed"
@@ -19,10 +20,11 @@
         </button>
 
         <!-- Legend: fixed position, independent of layer control -->
-        <div class="legend-area" :class="{ collapsed: legendCollapsed }">
+        <div v-if="showLegend" class="legend-area" :class="{ collapsed: legendCollapsed }">
           <LegendBar />
         </div>
         <button
+          v-if="showLegend"
           class="legend-toggle"
           :class="{ 'panel-open': !legendCollapsed }"
           @click="legendCollapsed = !legendCollapsed"
@@ -50,7 +52,7 @@
             <button
               class="tab-btn tab-overview"
               :class="{ active: activeTab === tabs[0].key }"
-              @click="activeTab = tabs[0].key"
+              @click="onTabClick(tabs[0].key)"
             >
               <span class="tab-dot" :style="{ background: tabs[0].color }" />
               <span class="tab-label">{{ tabs[0].label }}</span>
@@ -61,7 +63,7 @@
               :key="tab.key"
               class="tab-btn"
               :class="{ active: activeTab === tab.key }"
-              @click="activeTab = tab.key"
+              @click="onTabClick(tab.key)"
             >
               <span class="tab-dot" :style="{ background: tab.color }" />
               <span class="tab-label">{{ tab.label }}</span>
@@ -92,6 +94,8 @@ import LegendBar from '../map/LegendBar.vue'
 const props = defineProps({
   tabs: { type: Array, required: true },
   defaultTab: { type: String, default: '' },
+  showLayerControl: { type: Boolean, default: true },
+  showLegend: { type: Boolean, default: true },
 })
 
 const activeTab = ref(props.defaultTab || props.tabs[0]?.key || '')
@@ -110,6 +114,17 @@ watch(activeTab, (newKey) => {
     window.dispatchEvent(new CustomEvent('chart-replay', { detail: newKey }))
   })
 })
+
+// 点击已激活的 tab 也重播动画（watch 不触发，因为值未变）
+function onTabClick(tabKey) {
+  const isSame = activeTab.value === tabKey
+  activeTab.value = tabKey
+  if (isSame) {
+    nextTick(() => {
+      window.dispatchEvent(new CustomEvent('chart-replay', { detail: tabKey }))
+    })
+  }
+}
 
 function toggleFullscreen() {
   if (isMobile.value) {
@@ -235,6 +250,8 @@ onUnmounted(() => { window.removeEventListener('resize', checkMobile) })
   background: #1a1a1a;
   position: absolute;
   inset: 0;
+  display: flex;
+  flex-direction: column;
   visibility: hidden;
   pointer-events: none;
 }

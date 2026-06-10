@@ -6,15 +6,22 @@ const socioEconomicData = {
     urbanRate: 68.2,
   },
   gdp: {
+    perCapita: 1.95,
+    perCapitaUnit: '万元 (人民币)',
     total: 32.8,
+    totalUnit: '亿人民币',
     growth: 6.8,
-    perCapita: 19.5,
     structure: [
       { name: '第一产业', value: 3.2, color: '#69DB7C' },
       { name: '第二产业', value: 41.5, color: '#4DABF7' },
       { name: '第三产业', value: 55.3, color: '#FF6B6B' },
     ],
   },
+  industryStructure: [
+    { name: '第一产业', value: 3.2, color: '#69DB7C' },
+    { name: '第二产业', value: 41.5, color: '#4DABF7' },
+    { name: '第三产业', value: 55.3, color: '#FF6B6B' },
+  ],
   districtPopulation: [
     { name: '上海市', value: 2487, center: [121.47, 31.23] },
     { name: '杭州市', value: 1220, center: [120.15, 30.28] },
@@ -26,14 +33,14 @@ const socioEconomicData = {
     { name: '南通市', value: 774, center: [120.89, 31.98] },
   ],
   districtGdp: [
-    { name: '上海市', value: 47200, center: [121.47, 31.23] },
-    { name: '苏州市', value: 24600, center: [120.59, 31.30] },
-    { name: '杭州市', value: 21800, center: [120.15, 30.28] },
-    { name: '南京市', value: 17400, center: [118.80, 32.06] },
-    { name: '宁波市', value: 16400, center: [121.54, 29.87] },
-    { name: '合肥市', value: 13500, center: [117.23, 31.82] },
-    { name: '无锡市', value: 15500, center: [120.30, 31.57] },
-    { name: '南通市', value: 11800, center: [120.89, 31.98] },
+    { name: '上海市', value: 47.2, center: [121.47, 31.23] },
+    { name: '苏州市', value: 24.6, center: [120.59, 31.30] },
+    { name: '杭州市', value: 21.8, center: [120.15, 30.28] },
+    { name: '南京市', value: 17.4, center: [118.80, 32.06] },
+    { name: '宁波市', value: 16.4, center: [121.54, 29.87] },
+    { name: '合肥市', value: 13.5, center: [117.23, 31.82] },
+    { name: '无锡市', value: 15.5, center: [120.30, 31.57] },
+    { name: '南通市', value: 11.8, center: [120.89, 31.98] },
   ],
   correlationData: [
     { expansionRate: 4.5, gdpGrowth: 8.2, populationGrowth: 3.8, name: '上海市', center: [121.47, 31.23] },
@@ -44,6 +51,13 @@ const socioEconomicData = {
     { expansionRate: 2.9, gdpGrowth: 6.8, populationGrowth: 3.0, name: '合肥市', center: [117.23, 31.82] },
     { expansionRate: 2.6, gdpGrowth: 5.8, populationGrowth: 2.2, name: '无锡市', center: [120.30, 31.57] },
     { expansionRate: 2.3, gdpGrowth: 5.5, populationGrowth: 1.9, name: '南通市', center: [120.89, 31.98] },
+  ],
+  ntlTrend: [
+    { year: 2000, value: 18.2 },
+    { year: 2005, value: 22.5 },
+    { year: 2010, value: 28.7 },
+    { year: 2015, value: 36.4 },
+    { year: 2020, value: 45.1 },
   ],
 }
 

@@ -120,7 +120,19 @@ async function generateCode() {
     )
     const file = new File([geojsonBlob], `${formData.boundaryName || 'boundary'}.geojson`, { type: 'application/json' })
 
-    const uploadResult = await uploadBoundary(file, formData.boundaryName || '未命名', 'manual')
+    const uploadResult = await uploadBoundary(
+      file,
+      formData.boundaryName || '未命名',
+      formData.timePeriods,
+      'manual',
+      null,
+      {
+        indicators: formData.indicators,
+        satellite: formData.satellite,
+        exportFormat: formData.exportFormat,
+        exportPrefix: formData.exportPrefix,
+      },
+    )
 
     // Get generated code from backend
     const codeResult = await getComputeCode(uploadResult.task_id)

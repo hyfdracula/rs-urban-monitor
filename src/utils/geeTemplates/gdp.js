@@ -1,5 +1,8 @@
 /**
- * GDP spatial distribution template.
+ * GDP distribution template.
+ * Uses Kummu et al. (2025) gridded GDP per capita dataset.
+ * Asset: projects/sat-io/open-datasets/GRIDDED_HDI_GDP/adm2_gdp_perCapita_1990_2022
+ * Band: PPP_YYYY (PPP, constant 2021 USD, 30 arc-sec ~1km)
  */
 
 export function gdpTemplate(params) {
@@ -7,42 +10,19 @@ export function gdpTemplate(params) {
 
   let code = `
 // ========== GDP 分布数据提取 ==========
-// 使用 GHSL - Global Human Settlement Layer GDP proxy
-// 或使用 Kummu et al. GDP 栅格数据
+// 使用 Kummu et al. (2025) Gridded GDP per capita (PPP, constant 2021 USD)
+// 数据源: projects/sat-io/open-datasets/GRIDDED_HDI_GDP/adm2_gdp_perCapita_1990_2022
+// 波段: PPP_YYYY (覆盖 1990-2022)
 
 function extractGDP(year, boundary) {
-  // 使用 LandScan 或 GHSL 作为 GDP 空间化代理
-  // 这里用夜间灯光作为 GDP 代理 (NTL 与 GDP 高度相关)
-  var ntl;
-
-  if (year <= 2013) {
-    ntl = ee.ImageCollection('NOAA/DMSP-OLS/NIGHTTIME_LIGHTS')
-      .filterMetadata('year', 'equals', year)
-      .first()
-      .select('stable_lights');
-  } else {
-    ntl = ee.ImageCollection('NOAA/VIIRS/DNB/ANNUAL_V22')
-      .filterDate(ee.Date.fromYMD(year, 1, 1), ee.Date.fromYMD(year, 12, 31))
-      .first()
-      .select('average');
+  if (year < 1990 || year > 2022) {
+    print('GDP 数据仅覆盖 1990-2022，年份 ' + year + ' 不可用');
+    return ee.Image.constant(0).rename('GDP_per_capita');
   }
-
-  // 标准化到 GDP 指数 (0-1)
-  var min = ntl.reduceRegion({
-    reducer: ee.Reducer.min(),
-    geometry: boundary,
-    scale: 500,
-    maxPixels: 1e13
-  });
-  var max = ntl.reduceRegion({
-    reducer: ee.Reducer.max(),
-    geometry: boundary,
-    scale: 500,
-    maxPixels: 1e13
-  });
-
-  var gdp = ntl.unitScale(min, max).rename('GDP_index').clip(boundary);
-  return gdp;
+  var gdpImg = ee.Image(
+    'projects/sat-io/open-datasets/GRIDDED_HDI_GDP/adm2_gdp_perCapita_1990_2022'
+  );
+  return gdpImg.select('PPP_' + year).clip(boundary).rename('GDP_per_capita');
 }
 `
 
@@ -50,7 +30,7 @@ function extractGDP(year, boundary) {
     `var gdp_${year} = extractGDP(${year}, boundary);`
   ).join('\n')
 
-  code += `\n// 生成 GDP 代理影像\n${yearCalls}\n`
+  code += `\n// 生成 GDP 影像\n${yearCalls}\n`
 
   return code
 }

@@ -47,7 +47,7 @@ const indicatorList = [
   { key: 'expansion', name: '扩张模式分类', desc: '边缘/填充/飞地三种模式', icon: '📈' },
   { key: 'nightLight', name: '夜间灯光', desc: 'DMSP-OLS + VIIRS', icon: '🌙' },
   { key: 'population', name: '人口密度', desc: 'WorldPop 100m 栅格', icon: '👥' },
-  { key: 'gdp', name: 'GDP 分布', desc: 'GDP 空间化代理', icon: '💰' },
+  { key: 'gdp', name: 'GDP 分布', desc: 'Kummu 1km 网格 GDP', icon: '💰' },
 ]
 
 const selected = ref([...(props.modelValue.indicators || [])])

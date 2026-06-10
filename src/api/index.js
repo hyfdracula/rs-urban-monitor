@@ -1,8 +1,16 @@
 import axios from 'axios'
+import { getUserToken } from '../utils/auth'
+import { createBoundaryUploadForm, createUploadRequestConfig } from '../utils/uploadForm'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || '/api',
   timeout: 30000,
+})
+
+// 自动带用户 token，后端 GEE 接口需要这个来区分用户
+api.interceptors.request.use((config) => {
+  config.headers.Authorization = `Bearer ${getUserToken()}`
+  return config
 })
 
 // ========== 城市扩张 ==========
@@ -42,10 +50,7 @@ export function getCityTable(params) {
 
 // ========== 文件上传 ==========
 export function uploadGeoFile(formData, onProgress) {
-  return api.post('/upload/geofile', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress: onProgress,
-  }).then(r => r.data)
+  return api.post('/upload/geofile', formData, createUploadRequestConfig(onProgress)).then(r => r.data)
 }
 
 // ========== 任务状态 ==========
@@ -83,15 +88,13 @@ export function getSystemQuota() {
 }
 
 // ========== 上传边界 & 计算 ==========
-export function uploadBoundary(file, name, computeMode, onProgress) {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('name', name)
-  formData.append('compute_mode', computeMode)
-  return api.post('/upload/boundary', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress: onProgress,
-  }).then(r => r.data)
+export function uploadBoundary(file, name, years, computeMode, onProgress, config) {
+  const formData = createBoundaryUploadForm(file, name, years, computeMode, config)
+  return api.post(
+    '/upload/boundary',
+    formData,
+    createUploadRequestConfig(onProgress, 120000),
+  ).then(r => r.data)
 }
 
 export function getComputeStatus(taskId) {
@@ -115,6 +118,24 @@ export function getBoundaryList() {
   return api.get('/boundary/list').then(r => r.data)
 }
 
+export function deleteBoundary(id) {
+  return api.delete(`/boundary/${id}`).then(r => r.data)
+}
+
+export function renameBoundary(id, name) {
+  return api.put(`/boundary/${id}/rename`, { name }).then(r => r.data)
+}
+
+// ========== 重新计算（复用已有边界） ==========
+export function recomputeBoundary(boundaryId, { years, computeMode, name, indicators }) {
+  return api.post(`/boundary/${boundaryId}/recompute`, {
+    years,
+    compute_mode: computeMode,
+    name: name || null,
+    indicators: indicators || [],
+  }).then(r => r.data)
+}
+
 // ========== 计算任务列表 ==========
 export function getComputeTasks() {
   return api.get('/compute/tasks').then(r => r.data)
@@ -123,6 +144,15 @@ export function getComputeTasks() {
 // ========== 分析聚合接口 ==========
 export function getAnalysis(taskId) {
   return api.get(`/analysis/${taskId}`).then(r => r.data)
+}
+
+// ========== 计算进度 ==========
+export function getComputeProgress(taskId) {
+  return api.get(`/compute/${taskId}/progress`).then(r => r.data)
+}
+
+export function cancelCompute(taskId) {
+  return api.post(`/compute/${taskId}/cancel`).then(r => r.data)
 }
 
 export default api

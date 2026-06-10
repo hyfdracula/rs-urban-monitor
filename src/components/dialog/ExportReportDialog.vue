@@ -350,12 +350,12 @@ async function doExport() {
         key: 'socio', title: '社会经济分析',
         cards: [
           { value: `${socioData.population.total}万`, label: '常住人口' },
-          { value: `${socioData.gdp.total}万亿`, label: 'GDP总量' },
+          { value: `${socioData.gdp.total}亿`, label: 'GDP总量' },
         ],
         table: {
-          headers: ['城市', '人口(万)', 'GDP(亿元)'],
+          headers: ['城市', '人口(万)', 'GDP(亿人民币)'],
           rows: (socioData.districtPopulation || []).slice(0, 8).map((d, i) => [
-            d.name, String(d.value), String((socioData.districtGdp[i]?.value / 10000 || 0).toFixed(1)) + '万亿',
+            d.name, String(d.value), String(socioData.districtGdp[i]?.value ?? '—') + '亿人民币',
           ]),
         },
       })

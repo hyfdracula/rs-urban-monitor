@@ -5,22 +5,27 @@
     <!-- Key Stats -->
     <div class="stat-cards">
       <div class="stat-card">
-        <div class="stat-value">{{ socioData.population.total }}</div>
+        <div class="stat-value">{{ socioData.population.total ?? '—' }}</div>
         <div class="stat-unit">万人</div>
         <div class="stat-label">常住人口</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ socioData.gdp.total }}</div>
-        <div class="stat-unit">万亿元</div>
+        <div class="stat-value">{{ socioData.gdp.perCapita ?? '—' }}</div>
+        <div class="stat-unit">万元</div>
+        <div class="stat-label">人均 GDP</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ socioData.gdp.total ?? '—' }}</div>
+        <div class="stat-unit">亿人民币</div>
         <div class="stat-label">GDP 总量</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value highlight-green">{{ socioData.population.growth }}</div>
+        <div class="stat-value highlight-green">{{ socioData.population.growth ?? '—' }}</div>
         <div class="stat-unit">%</div>
         <div class="stat-label">人口增长率</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value highlight-green">{{ socioData.gdp.growth }}</div>
+        <div class="stat-value highlight-green">{{ socioData.gdp.growth ?? '—' }}</div>
         <div class="stat-unit">%</div>
         <div class="stat-label">GDP 增速</div>
       </div>
@@ -43,6 +48,12 @@
       <h4 class="section-title">区县 GDP 排名</h4>
       <div ref="gdpChart" class="chart-container" />
     </div>
+
+    <!-- NTL Trend -->
+    <div class="chart-section">
+      <h4 class="section-title">🌙 夜间灯光均值趋势</h4>
+      <div ref="ntlChart" class="chart-container" />
+    </div>
   </div>
 </template>
 
@@ -63,9 +74,11 @@ const emit = defineEmits(['district-click'])
 const structureChart = ref(null)
 const populationChart = ref(null)
 const gdpChart = ref(null)
+const ntlChart = ref(null)
 let structureInstance = null
 let populationInstance = null
 let gdpInstance = null
+let ntlInstance = null
 const loading = ref(true)
 
 const socioData = ref(props.data)
@@ -100,11 +113,16 @@ function initCharts() {
       }
     })
   }
+  if (ntlChart.value) {
+    ntlInstance = echarts.init(ntlChart.value)
+    updateNtlChart()
+  }
 }
 
 function updateStructureChart() {
   if (!structureInstance) return
-  const data = socioData.value.gdp.structure
+  const data = socioData.value?.gdp?.structure ?? []
+  if (!data.length) { structureInstance.clear(); return }
   structureInstance.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -139,7 +157,8 @@ function updateStructureChart() {
 
 function updatePopulationChart() {
   if (!populationInstance) return
-  const data = socioData.value.districtPopulation
+  const data = socioData.value?.districtPopulation ?? []
+  if (!data.length) { populationInstance.clear(); return }
   populationInstance.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -183,7 +202,8 @@ function updatePopulationChart() {
 
 function updateGdpChart() {
   if (!gdpInstance) return
-  const data = socioData.value.districtGdp
+  const data = socioData.value?.districtGdp ?? []
+  if (!data.length) { gdpInstance.clear(); return }
   gdpInstance.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -191,7 +211,7 @@ function updateGdpChart() {
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
         const d = params[0]
-        return `${d.name}: ${(d.value / 10000).toFixed(1)}万亿`
+        return `${d.name}: ${d.value}亿人民币`
       },
     },
     grid: {
@@ -207,7 +227,7 @@ function updateGdpChart() {
       axisLabel: {
         color: '#888',
         fontSize: 10,
-        formatter: (v) => `${(v / 10000).toFixed(0)}万亿`,
+        formatter: (v) => `${v}亿`,
       },
       splitLine: { lineStyle: { color: '#333' } },
     },
@@ -233,17 +253,65 @@ function updateGdpChart() {
   })
 }
 
+function updateNtlChart() {
+  if (!ntlInstance) return
+  const data = socioData.value?.ntlTrend ?? []
+  if (!data.length) { ntlInstance.clear(); return }
+  ntlInstance.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis',
+      formatter: (p) => `${p[0].axisValue} 年<br/>夜灯均值: ${p[0].value}`,
+    },
+    grid: {
+      left: '8%',
+      right: '6%',
+      bottom: '8%',
+      top: '8%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => d.year),
+      axisLine: { lineStyle: { color: '#444' } },
+      axisLabel: { color: '#888', fontSize: 10 },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { lineStyle: { color: '#444' } },
+      axisLabel: { color: '#888', fontSize: 10 },
+      splitLine: { lineStyle: { color: '#333' } },
+    },
+    series: [{
+      type: 'line',
+      data: data.map(d => d.value),
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: { color: '#FFCC00', width: 2 },
+      itemStyle: { color: '#FFCC00' },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(255,204,0,0.25)' },
+          { offset: 1, color: 'rgba(255,204,0,0.03)' },
+        ]),
+      },
+    }],
+  })
+}
+
 function updateCharts() {
   updateStructureChart()
   updatePopulationChart()
   updateGdpChart()
+  updateNtlChart()
 }
 
 onMounted(() => {
   initCharts()
   loading.value = false
   window.addEventListener('resize', handleResize)
-  window.addEventListener('chart-replay', () => { structureInstance?.clear(); populationInstance?.clear(); gdpInstance?.clear(); updateCharts() })
+  window.addEventListener('chart-replay', () => { structureInstance?.clear(); populationInstance?.clear(); gdpInstance?.clear(); ntlInstance?.clear(); updateCharts() })
 })
 
 onUnmounted(() => {
@@ -251,12 +319,14 @@ onUnmounted(() => {
   structureInstance?.dispose()
   populationInstance?.dispose()
   gdpInstance?.dispose()
+  ntlInstance?.dispose()
 })
 
 function handleResize() {
   structureInstance?.resize()
   populationInstance?.resize()
   gdpInstance?.resize()
+  ntlInstance?.resize()
 }
 </script>
 
@@ -275,20 +345,20 @@ function handleResize() {
 
 .stat-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
   margin-bottom: 16px;
 }
 
 .stat-card {
   background: #252525;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px 6px;
   text-align: center;
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
   line-height: 1;

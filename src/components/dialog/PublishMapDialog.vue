@@ -148,7 +148,7 @@ const step = ref(1)
 const publishing = ref(false)
 const selectedLayers = ref([])
 const publishResults = ref([])
-const workspace = ref('rs_urban')
+const workspace = ref('ueea2601')
 
 const publishableLayers = getPublishableLayers()
 

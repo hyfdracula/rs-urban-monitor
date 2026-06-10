@@ -3,6 +3,7 @@ import { STUDY_AREA } from './districts.js'
 const expansionData = {
   totalArea: 1285.6,
   patches: 2340,
+  patchesDesc: '基于建设用地面积与平均斑块尺度（0.5 km²）的比值计算',
   avgPatchSize: 0.55,
   expansionRate: 3.42,
   modeDistribution: [

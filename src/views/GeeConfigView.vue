@@ -4,40 +4,41 @@
       <h2>🌍 GEE 账号配置</h2>
       <p class="desc">配置 Google Earth Engine 服务账号，解锁自动模式</p>
 
-      <!-- Step 1: Register -->
-      <div class="step-item" :class="{ done: hasKey }">
+      <!-- Step 1 -->
+      <div class="step-item" :class="{ done: keyStatus === 'valid' }">
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>注册 Google Earth Engine</h4>
           <p>需要 Google 账号，注册后可获得免费 GEE 使用权限</p>
-          <a href="https://code.earthengine.google.com/register" target="_blank" class="step-link">
+          <a href="https://code.earthengine.google.com/register" target="_blank" rel="noopener noreferrer">
             <el-button size="small" type="primary" plain>前往注册</el-button>
           </a>
         </div>
       </div>
 
-      <!-- Step 2: Service Account -->
-      <div class="step-item" :class="{ done: hasKey }">
+      <!-- Step 2 -->
+      <div class="step-item" :class="{ done: keyStatus === 'valid' }">
         <div class="step-num">2</div>
         <div class="step-body">
           <h4>创建服务账号</h4>
           <p>在 Google Cloud Console 创建服务账号并启用 Earth Engine API</p>
-          <a href="https://console.cloud.google.com/apis/library/earthengine.googleapis.com" target="_blank" class="step-link">
-            <el-button size="small" type="primary" plain>打开 Google Cloud</el-button>
-          </a>
-          <div class="tutorial-links">
-            <a href="https://developers.google.com/earth-engine/guides/service_account" target="_blank">📖 官方教程</a>
+          <div class="btn-row">
+            <a href="https://console.cloud.google.com/apis/library/earthengine.googleapis.com" target="_blank" rel="noopener noreferrer">
+              <el-button size="small" type="primary" plain>打开 Google Cloud</el-button>
+            </a>
+            <button class="tutorial-btn" @click="showTutorial = true">📖 密钥获取教程</button>
           </div>
         </div>
       </div>
 
-      <!-- Step 3: Upload Key -->
-      <div class="step-item" :class="{ done: hasKey }">
+      <!-- Step 3 -->
+      <div class="step-item" :class="{ done: keyStatus === 'valid' }">
         <div class="step-num">3</div>
         <div class="step-body">
           <h4>上传密钥文件</h4>
-          <p>上传服务账号的 JSON 密钥文件（仅保存在本地浏览器中）</p>
+          <p>上传服务账号的 JSON 密钥文件</p>
 
+          <!-- No key: show upload -->
           <div v-if="!hasKey" class="key-upload">
             <el-upload
               drag
@@ -54,74 +55,84 @@
             </el-upload>
           </div>
 
-          <!-- Connected status -->
+          <!-- Has key: show status -->
           <div v-else class="connected-box">
             <div class="connected-row">
-              <el-icon color="#69DB7C"><CircleCheck /></el-icon>
-              <span class="connected-label">已配置</span>
+              <el-icon v-if="keyStatus === 'valid'" color="#69DB7C"><CircleCheck /></el-icon>
+              <el-icon v-else-if="keyStatus === 'invalid'" color="#FF6B6B"><CircleClose /></el-icon>
+              <el-icon v-else color="#FFD43B"><Clock /></el-icon>
+              <span class="connected-label" :class="keyStatus">
+                {{ statusLabel }}
+              </span>
               <span class="connected-email">{{ accountEmail }}</span>
             </div>
-            <div class="quota-bar">
+
+            <!-- Verify button -->
+            <div v-if="keyStatus !== 'valid'" class="verify-row">
+              <el-button
+                size="small"
+                type="primary"
+                :loading="verifying"
+                @click="verifyKey"
+              >
+                {{ verifying ? '验证中...' : '验证密钥' }}
+              </el-button>
+              <span v-if="keyStatus === 'invalid'" class="verify-hint">密钥无效，请重新上传</span>
+            </div>
+
+            <!-- Quota -->
+            <div v-if="keyStatus === 'valid'" class="quota-bar">
               <div class="quota-label">
-                <span>剩余配额</span>
-                <span class="quota-value">{{ quotaUsed.toLocaleString() }} / {{ quotaTotal.toLocaleString() }} 秒</span>
-              </div>
-              <div class="quota-track">
-                <div class="quota-fill" :style="{ width: quotaPercent + '%' }" />
+                <span>今日使用</span>
+                <span class="quota-value">{{ quotaInfo }}</span>
               </div>
             </div>
-            <el-button size="small" type="danger" text @click="removeKey">
-              移除密钥
+
+            <el-button size="small" type="danger" text @click="removeKey" :loading="removing">
+              删除密钥
             </el-button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- How it works -->
-    <div class="info-card">
-      <h3>💡 工作原理</h3>
-      <div class="info-grid">
+      <!-- Info -->
+      <div class="info-box">
         <div class="info-item">
-          <span class="info-icon">🔐</span>
-          <div>
-            <span class="info-title">密钥安全</span>
-            <span class="info-desc">密钥仅保存在你的浏览器本地，不会上传到任何服务器</span>
-          </div>
-        </div>
-        <div class="info-item">
-          <span class="info-icon">⚡</span>
-          <div>
-            <span class="info-title">自动模式</span>
-            <span class="info-desc">配置后即可使用自动模式，一键完成数据处理全流程</span>
-          </div>
-        </div>
-        <div class="info-item">
-          <span class="info-icon">📊</span>
-          <div>
-            <span class="info-title">免费配额</span>
-            <span class="info-desc">GEE 免费版提供充足计算资源，适合学术研究使用</span>
-          </div>
+          <span>🔐</span>
+          <span>密钥保存在后端服务器，前端不存储敏感信息</span>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Tutorial Dialog -->
+  <GeeTutorialDialog v-model="showTutorial" />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { UploadFilled, CircleCheck } from '@element-plus/icons-vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { UploadFilled, CircleCheck, CircleClose, Clock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { saveGeeKey, verifyGeeKey, getGeeKeyStatus, deleteGeeKey, getSystemQuota } from '../api'
+import GeeTutorialDialog from '../components/dialog/GeeTutorialDialog.vue'
 
 const isMobile = ref(false)
 const hasKey = ref(false)
+const showTutorial = ref(false)
+const keyStatus = ref(null) // null | 'unverified' | 'valid' | 'invalid'
 const accountEmail = ref('')
 const quotaUsed = ref(0)
-const quotaTotal = ref(18000)
+const verifying = ref(false)
+const removing = ref(false)
 
-const quotaPercent = computed(() => {
-  if (quotaTotal.value === 0) return 0
-  return Math.round((quotaUsed.value / quotaTotal.value) * 100)
+const statusLabel = computed(() => {
+  const map = { unverified: '未验证', valid: '已验证', invalid: '验证失败' }
+  return map[keyStatus.value] || '未知'
+})
+
+const quotaInfo = computed(() => {
+  if (!quotaUsed.value && quotaUsed.value !== 0) return 'GEE 无硬性配额限制'
+  return `今日 ${quotaUsed.value} 次`
 })
 
 function checkMobile() {
@@ -131,63 +142,90 @@ function checkMobile() {
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
-  loadKeyFromStorage()
+  loadStatus()
 })
 
-function loadKeyFromStorage() {
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
+async function loadStatus() {
   try {
-    const stored = localStorage.getItem('gee_service_account')
-    if (stored) {
-      const data = JSON.parse(stored)
-      hasKey.value = true
-      accountEmail.value = data.client_email || '未知账号'
-      quotaUsed.value = data.quotaUsed || 2800
+    const data = await getGeeKeyStatus()
+    hasKey.value = data.has_key
+    keyStatus.value = data.status
+    accountEmail.value = data.service_account || ''
+
+    if (data.has_key) {
+      try {
+        const q = await getSystemQuota()
+        quotaUsed.value = q.used_today || 0
+      } catch {
+        quotaUsed.value = 0
+      }
     }
   } catch {
-    // no valid key
+    hasKey.value = false
+    keyStatus.value = null
   }
 }
 
-function onKeyChange(file) {
+async function onKeyChange(file) {
   const reader = new FileReader()
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const keyData = JSON.parse(e.target.result)
-
-      // Validate it looks like a service account key
       if (!keyData.client_email || !keyData.private_key) {
-        ElMessage.error('无效的服务账号密钥文件，请检查是否为正确的 JSON 密钥')
+        ElMessage.error('无效的服务账号密钥文件')
         return
       }
 
-      // Store in localStorage (browser only, never sent to server)
-      const storeData = {
-        client_email: keyData.client_email,
-        project_id: keyData.project_id || '',
-        private_key: keyData.private_key,
-        quotaUsed: 2800,
-        savedAt: new Date().toISOString(),
-      }
-
-      localStorage.setItem('gee_service_account', JSON.stringify(storeData))
+      await saveGeeKey(keyData.client_email, keyData)
       hasKey.value = true
+      keyStatus.value = 'unverified'
       accountEmail.value = keyData.client_email
-      quotaUsed.value = 2800
+      ElMessage.success('密钥上传成功')
 
-      ElMessage.success(`服务账号 ${keyData.client_email} 配置成功`)
-    } catch {
-      ElMessage.error('JSON 解析失败，请检查文件格式')
+      await verifyKey()
+    } catch (err) {
+      ElMessage.error(err.response?.data?.detail || '上传失败')
     }
   }
   reader.readAsText(file.raw)
 }
 
-function removeKey() {
-  localStorage.removeItem('gee_service_account')
-  hasKey.value = false
-  accountEmail.value = ''
-  quotaUsed.value = 0
-  ElMessage.success('密钥已移除')
+async function verifyKey() {
+  verifying.value = true
+  try {
+    const data = await verifyGeeKey()
+    keyStatus.value = data.status
+    if (data.success) {
+      ElMessage.success('GEE 密钥验证成功！')
+      window.dispatchEvent(new CustomEvent('gee-status-changed'))
+    } else {
+      ElMessage.error(data.message || '验证失败')
+    }
+  } catch (err) {
+    keyStatus.value = 'invalid'
+    ElMessage.error(err.response?.data?.message || '验证失败')
+  }
+  verifying.value = false
+}
+
+async function removeKey() {
+  removing.value = true
+  try {
+    await deleteGeeKey()
+    hasKey.value = false
+    keyStatus.value = null
+    accountEmail.value = ''
+    quotaUsed.value = 0
+    ElMessage.success('密钥已删除')
+    window.dispatchEvent(new CustomEvent('gee-status-changed'))
+  } catch (err) {
+    ElMessage.error(err.response?.data?.detail || '删除失败')
+  }
+  removing.value = false
 }
 </script>
 
@@ -200,7 +238,6 @@ function removeKey() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
 }
 
 .config-card {
@@ -220,31 +257,31 @@ function removeKey() {
 .desc {
   color: #888;
   font-size: 13px;
-  margin: 0 0 24px;
+  margin: 0 0 18px;
 }
 
 /* Steps */
 .step-item {
   display: flex;
-  gap: 14px;
-  padding: 16px 0;
+  gap: 12px;
+  padding: 14px 0;
   border-bottom: 1px solid #2a2a2a;
 }
 
-.step-item:last-child {
+.step-item:last-of-type {
   border-bottom: none;
 }
 
 .step-num {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #2a2a2a;
   color: #888;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -256,31 +293,34 @@ function removeKey() {
 
 .step-body h4 {
   color: #ddd;
-  margin: 0 0 4px;
-  font-size: 14px;
+  margin: 0 0 3px;
+  font-size: 13px;
 }
 
 .step-body p {
   color: #888;
   font-size: 12px;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
 }
 
-.step-link {
-  text-decoration: none;
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.tutorial-links {
-  margin-top: 6px;
-}
-
-.tutorial-links a {
+.tutorial-btn {
   color: #4DABF7;
   font-size: 12px;
-  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s;
 }
 
-.tutorial-links a:hover {
+.tutorial-btn:hover {
+  color: #74C0FC;
   text-decoration: underline;
 }
 
@@ -292,115 +332,115 @@ function removeKey() {
   width: 100%;
 }
 
-.key-upload-area:hover { border-color: #666; }
-.upload-icon { font-size: 28px; color: #555; }
-.upload-text { color: #aaa; margin-top: 6px; font-size: 13px; }
-.upload-hint { color: #555; font-size: 12px; margin-top: 4px; }
+.key-upload-area:hover {
+  border-color: #666;
+}
+
+.upload-icon {
+  font-size: 28px;
+  color: #555;
+}
+
+.upload-text {
+  color: #aaa;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.upload-hint {
+  color: #555;
+  font-size: 12px;
+  margin-top: 4px;
+}
 
 /* Connected */
 .connected-box {
   background: rgba(105, 219, 124, 0.06);
   border: 1px solid rgba(105, 219, 124, 0.2);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
 }
 
 .connected-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .connected-label {
-  color: #69DB7C;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+}
+
+.connected-label.valid {
+  color: #69DB7C;
+}
+
+.connected-label.unverified {
+  color: #FFD43B;
+}
+
+.connected-label.invalid {
+  color: #FF6B6B;
 }
 
 .connected-email {
   color: #888;
-  font-size: 13px;
+  font-size: 12px;
   margin-left: auto;
 }
 
-.quota-bar { margin-bottom: 10px; }
+.verify-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.verify-hint {
+  color: #FF6B6B;
+  font-size: 11px;
+}
+
+.quota-bar {
+  margin-bottom: 8px;
+}
+
 .quota-label {
   display: flex;
   justify-content: space-between;
   color: #888;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-.quota-value { color: #bbb; }
-
-.quota-track {
-  height: 6px;
-  background: #333;
-  border-radius: 3px;
-  overflow: hidden;
+  font-size: 11px;
 }
 
-.quota-fill {
-  height: 100%;
-  background: #4DABF7;
-  border-radius: 3px;
-  transition: width 0.5s;
+.quota-value {
+  color: #bbb;
 }
 
-/* Info card */
-.info-card {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 520px;
-  width: 100%;
-}
-
-.info-card h3 {
-  color: #ccc;
-  margin: 0 0 16px;
-  font-size: 15px;
-}
-
-.info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* Info */
+.info-box {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #2a2a2a;
 }
 
 .info-item {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.info-icon { font-size: 20px; }
-
-.info-title {
-  color: #ddd;
-  font-size: 13px;
-  font-weight: 500;
-  display: block;
-}
-
-.info-desc {
-  color: #888;
-  font-size: 12px;
-  display: block;
-  margin-top: 2px;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 11px;
+  padding: 3px 0;
 }
 
 /* Mobile */
 @media (max-width: 767px) {
   .gee-config-page {
     padding: 16px;
-    gap: 16px;
   }
 
-  .config-card,
-  .info-card {
+  .config-card {
     max-width: 100%;
     padding: 20px;
     border-radius: 8px;

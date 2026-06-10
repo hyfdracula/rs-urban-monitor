@@ -2,12 +2,12 @@
   <MapLayout :tabs="tabs" default-tab="dashboard">
     <template #map>
       <MapViewer ref="mapRef" @map-loaded="onMapLoaded" @feature-click="onFeatureClick" />
-      <BottomBar :items="bottomItems" />
+      <BottomBar :items="bottomItems" @item-click="onBottomBarClick" />
     </template>
     <template #layer-control>
       <LayerControl ref="layerControlRef" @layer-toggle="onLayerToggle" @mode-toggle="onModeToggle" />
     </template>
-    <template #dashboard><DashboardView /></template>
+    <template #dashboard><DashboardView @open-report="$emit('open-report')" /></template>
     <template #expansion><ExpansionStats :data="expansionData" @district-click="flyToDistrict" /></template>
     <template #hotspot><HotspotView :data="hotspotData" @district-click="flyToDistrict" /></template>
     <template #ecology><EcologyStats :data="ecologyData" /></template>
@@ -18,10 +18,11 @@
       <TimelineSelector v-model="selectedYear" @change="onYearChange" />
     </template>
   </MapLayout>
+  <CompareDialog v-model="showCompare" :default-range="compareDefaultRange" storage-key="compare-range-home" />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Switch } from '@element-plus/icons-vue'
 import MapLayout from '../components/layout/MapLayout.vue'
 import MapViewer from '../components/map/MapViewer.vue'
@@ -35,22 +36,51 @@ import DashboardView from '../components/panel/DashboardView.vue'
 import HotspotView from '../components/panel/HotspotView.vue'
 import ScatterRadarView from '../components/panel/ScatterRadarView.vue'
 import TownshipRanking from '../components/panel/TownshipRanking.vue'
+import CompareDialog from '../components/dialog/CompareDialog.vue'
 import { getExpansionData, getEcologyData, getHotspotData } from '../data/mockAnalysis'
 import { getSocioEconomicData } from '../data/mockSocioEconomic'
 import { activeYearLayerGroups, activeYearLayers, setActiveYearLayers } from '../stores/layerState'
 import { buildYearLayerTransition, getYearLayerId } from '../utils/timelineLayers'
+import { TIME_PERIODS } from '../config/map'
 
 const mapRef = ref(null)
 const layerControlRef = ref(null)
 const selectedYear = ref(2020)
+const showCompare = ref(false)
+
+// Default range: first → last of TIME_PERIODS (never hardcoded)
+const compareDefaultRange = [TIME_PERIODS[0], TIME_PERIODS[TIME_PERIODS.length - 1]]
+
+defineEmits(['open-report'])
 const expansionData = ref(getExpansionData())
 const ecologyData = ref(getEcologyData())
 const socioData = ref(getSocioEconomicData())
 const hotspotData = ref(getHotspotData())
 
-const bottomItems = [
-  { key: 'compare', label: '双期对比', icon: Switch, to: '/compare' },
-]
+// Dynamic bottom bar: show range from localStorage or TIME_PERIODS
+function loadCompareRange() {
+  try {
+    const raw = localStorage.getItem('compare-range-home')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length === 2) return parsed
+    }
+  } catch { /* ignore */ }
+  return compareDefaultRange
+}
+
+const bottomItems = computed(() => {
+  const [start, end] = loadCompareRange()
+  return [
+    { key: 'compare', label: '双期对比', sub: `${start} → ${end}`, icon: Switch },
+  ]
+})
+
+function onBottomBarClick(item) {
+  if (item.key === 'compare') {
+    showCompare.value = true
+  }
+}
 
 const tabs = [
   { key: 'dashboard', label: '总览', color: '#FFD43B' },

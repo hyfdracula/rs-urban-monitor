@@ -25,9 +25,6 @@
         <span class="popup-label">年份</span>
         <span class="popup-value">{{ feature.year }}</span>
       </div>
-      <div v-if="feature.source === 'mock'" class="popup-footer-mock">
-        ⚠ 模拟数据
-      </div>
     </div>
   </div>
 </template>
@@ -131,14 +128,5 @@ const modeColor = computed(() => {
   font-size: 11px;
   color: #fff;
   font-weight: 600;
-}
-
-.popup-footer-mock {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid #333;
-  font-size: 10px;
-  color: #666;
-  text-align: center;
 }
 </style>

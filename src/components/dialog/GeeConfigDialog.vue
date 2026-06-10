@@ -31,7 +31,7 @@
             <a href="https://console.cloud.google.com/apis/library/earthengine.googleapis.com" target="_blank">
               <el-button size="small" type="primary" plain>打开 Google Cloud</el-button>
             </a>
-            <a href="https://developers.google.com/earth-engine/guides/service_account" target="_blank" class="tutorial-link">📖 官方教程</a>
+            <button class="tutorial-btn" @click="showTutorial = true">📖 密钥获取教程</button>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@
       <div class="info-box">
         <div class="info-item">
           <span>🔐</span>
-          <span>密钥保存在后端服务器，前端不存储敏感信息</span>
+          <span>密钥保存在后端服务器并加密，前端不存储敏感信息</span>
         </div>
       </div>
     </div>
@@ -113,6 +113,9 @@
       <el-button @click="visible = false">关闭</el-button>
     </template>
   </el-dialog>
+
+  <!-- Tutorial Dialog (outside main dialog for proper stacking) -->
+  <GeeTutorialDialog v-model="showTutorial" />
 </template>
 
 <script setup>
@@ -120,12 +123,14 @@ import { ref, computed, watch } from 'vue'
 import { UploadFilled, CircleCheck, CircleClose, Clock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { saveGeeKey, verifyGeeKey, getGeeKeyStatus, deleteGeeKey, getSystemQuota } from '../../api'
+import GeeTutorialDialog from './GeeTutorialDialog.vue'
 
 const props = defineProps({ modelValue: { type: Boolean, default: false } })
 const emit = defineEmits(['update:modelValue'])
 
 const visible = ref(false)
 const hasKey = ref(false)
+const showTutorial = ref(false)
 const keyStatus = ref(null) // null | 'unverified' | 'valid' | 'invalid'
 const accountEmail = ref('')
 const quotaUsed = ref(0)
@@ -186,7 +191,7 @@ async function onKeyChange(file) {
       hasKey.value = true
       keyStatus.value = 'unverified'
       accountEmail.value = keyData.client_email
-      ElMessage.success('密钥已上传，请点击验证')
+      ElMessage.success('密钥上传成功')
 
       // Auto-verify
       await verifyKey()
@@ -204,6 +209,7 @@ async function verifyKey() {
     keyStatus.value = data.status
     if (data.success) {
       ElMessage.success('GEE 密钥验证成功！')
+      window.dispatchEvent(new CustomEvent('gee-status-changed'))
     } else {
       ElMessage.error(data.message || '验证失败')
     }
@@ -223,6 +229,7 @@ async function removeKey() {
     accountEmail.value = ''
     quotaUsed.value = 0
     ElMessage.success('密钥已删除')
+    window.dispatchEvent(new CustomEvent('gee-status-changed'))
   } catch (err) {
     ElMessage.error(err.response?.data?.detail || '删除失败')
   }
@@ -244,12 +251,17 @@ async function removeKey() {
 }
 .step-item.done .step-num { background: rgba(105, 219, 124, 0.15); color: #69DB7C; }
 
+.step-body { flex: 1; min-width: 0; padding-right: 16px; }
 .step-body h4 { color: #ddd; margin: 0 0 3px; font-size: 13px; }
 .step-body p { color: #888; font-size: 12px; margin: 0 0 8px; }
 
 .btn-row { display: flex; align-items: center; gap: 10px; }
-.tutorial-link { color: #4DABF7; font-size: 12px; text-decoration: none; }
-.tutorial-link:hover { text-decoration: underline; }
+.tutorial-btn {
+  color: #4DABF7; font-size: 12px; cursor: pointer;
+  background: none; border: none; padding: 0;
+  transition: color 0.2s;
+}
+.tutorial-btn:hover { color: #74C0FC; text-decoration: underline; }
 
 .key-upload-area { border: 1px dashed #444; border-radius: 8px; background: #222; width: 100%; }
 .key-upload-area:hover { border-color: #666; }
@@ -261,8 +273,8 @@ async function removeKey() {
   background: rgba(105, 219, 124, 0.06); border: 1px solid rgba(105, 219, 124, 0.2);
   border-radius: 8px; padding: 12px;
 }
-.connected-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-.connected-label { font-size: 13px; font-weight: 500; }
+.connected-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: nowrap; }
+.connected-label { font-size: 13px; font-weight: 500; white-space: nowrap; }
 .connected-label.valid { color: #69DB7C; }
 .connected-label.unverified { color: #FFD43B; }
 .connected-label.invalid { color: #FF6B6B; }

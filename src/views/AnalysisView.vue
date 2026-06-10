@@ -15,12 +15,12 @@
     </div>
 
     <!-- Report loaded -->
-    <MapLayout v-else-if="report" :class="{ mobile: isMobile }">
+    <MapLayout v-else-if="report" :tabs="[{key:'analysis', label:'分析结果'}]" default-tab="analysis" :show-layer-control="false" :show-legend="false" :class="{ mobile: isMobile }">
       <template #map>
-        <MapViewer ref="mapRef" @map-ready="onMapReady" />
+        <MapViewer ref="mapRef" @map-loaded="onMapReady" />
       </template>
 
-      <template #default>
+      <template #analysis>
         <!-- Indicator cards -->
         <div class="indicator-cards">
           <div v-for="ind in report.indicators" :key="ind.label" class="ind-card">
@@ -75,6 +75,7 @@ import * as echarts from 'echarts'
 import { getAnalysis, getComputeReport } from '../api'
 import MapViewer from '../components/map/MapViewer.vue'
 import MapLayout from '../components/layout/MapLayout.vue'
+import { buildWmsTileUrlFromUrl } from '../utils/geoserver'
 
 const route = useRoute()
 const router = useRouter()
@@ -217,7 +218,7 @@ function onMapReady(map) {
 
     map.addSource(sourceId, {
       type: 'raster',
-      tiles: [layer.wms_url + '&bbox={bbox-epsg-3857}'],
+      tiles: [buildWmsTileUrlFromUrl(layer.wms_url)],
       tileSize: 256,
     })
     map.addLayer({
@@ -227,7 +228,8 @@ function onMapReady(map) {
       paint: { 'raster-opacity': 0.7 },
     })
 
-    if (!layer.visible) map.setLayoutProperty(layerId, 'visibility', 'none')
+    // 所有图层默认关闭，由用户手动打开
+    map.setLayoutProperty(layerId, 'visibility', 'none')
   }
 }
 

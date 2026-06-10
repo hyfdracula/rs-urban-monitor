@@ -1,7 +1,7 @@
 <template>
   <div class="upload-page" :class="{ mobile: isMobile }">
     <!-- Mode Selection (default) -->
-    <ModeSelection v-if="!currentMode" @select="currentMode = $event" />
+    <ModeSelection v-if="!currentMode" @select="currentMode = $event" @city-done="onCityDone" @recompute-done="onAutoDone" />
 
     <!-- Manual Mode Wizard -->
     <div v-else-if="currentMode === 'manual'" class="mode-content">
@@ -144,8 +144,12 @@ const isMobile = ref(false)
 const WORKSPACE = GEOSERVER_CONFIG.workspace
 const router = useRouter()
 
-function onAutoDone({ taskId, wmsUrls, url }) {
-  ElMessage.success(`分析完成！已生成 ${Object.keys(wmsUrls || {}).length} 个图层`)
+function onAutoDone({ taskId }) {
+  router.push({ path: '/custom-area', query: { submitted: '1' } })
+}
+
+function onCityDone({ taskId, url }) {
+  ElMessage.success('边界已上传，正在跳转分析页面...')
   router.push(url || `/analysis/${taskId}`)
 }
 

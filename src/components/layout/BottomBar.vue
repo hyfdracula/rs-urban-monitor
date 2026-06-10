@@ -7,22 +7,21 @@
       @click="handleClick(item)"
     >
       <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
-      <span>{{ item.label }}</span>
+      <span class="bar-label">{{ item.label }}</span>
+      <span v-if="item.sub" class="bar-sub">{{ item.sub }}</span>
     </button>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-
-defineProps({
+const props = defineProps({
   items: { type: Array, default: () => [] },
 })
 
-const router = useRouter()
+const emit = defineEmits(['item-click'])
 
 function handleClick(item) {
-  if (item.to) router.push(item.to)
+  emit('item-click', item)
 }
 </script>
 
@@ -61,6 +60,16 @@ function handleClick(item) {
 .bar-btn:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.bar-sub {
+  font-size: 11px;
+  color: #888;
+  margin-left: 2px;
+}
+
+.bar-btn:hover .bar-sub {
+  color: #aaa;
 }
 
 @media (max-width: 767px) {

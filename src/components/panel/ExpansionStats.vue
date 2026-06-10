@@ -11,6 +11,7 @@
         <div class="stat-value">{{ expansionData.patches }}</div>
         <div class="stat-unit">个</div>
         <div class="stat-label">新增斑块数</div>
+        <div class="stat-sub">面积÷平均斑块尺度(0.5km²)</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">{{ expansionData.avgPatchSize }}</div>
@@ -234,6 +235,12 @@ function handleResize() {
   font-size: 11px;
   color: #aaa;
   margin-top: 4px;
+}
+
+.stat-sub {
+  font-size: 9px;
+  color: #666;
+  margin-top: 2px;
 }
 
 .chart-section {

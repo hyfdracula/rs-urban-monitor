@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { GEOSERVER_CONFIG } from '../config/map'
+import { GEOSERVER_CONFIG } from '../config/map.js'
 
 // GeoServer WMS request helper
 const geoserverClient = axios.create({
@@ -15,6 +15,40 @@ export function buildWmsTileUrl(layerName, options = {}) {
   const style = options.style || ''
   const fmt = options.format || 'image/png'
   return `${GEOSERVER_CONFIG.wmsUrl}?service=WMS&version=1.1.1&request=GetMap&layers=${encodeURIComponent(GEOSERVER_CONFIG.workspace + ':' + layerName)}&styles=${encodeURIComponent(style)}&srs=EPSG:3857&format=${encodeURIComponent(fmt)}&transparent=true&width=256&height=256&bbox={bbox-epsg-3857}`
+}
+
+/**
+ * Normalize a backend WMS GetMap URL into a Mapbox raster tile URL.
+ * Backend report URLs are single-image WMS templates; Mapbox needs WebMercator
+ * tile bboxes and a transparent 256px image per tile.
+ */
+export function buildWmsTileUrlFromUrl(wmsUrl) {
+  const fallback = `${wmsUrl}${wmsUrl?.includes('?') ? '&' : '?'}bbox={bbox-epsg-3857}`
+
+  try {
+    const origin = typeof window === 'undefined' ? GEOSERVER_CONFIG.wmsUrl : window.location.origin
+    const parsed = new URL(wmsUrl, origin)
+    const layers = parsed.searchParams.get('layers')
+    if (!layers) return fallback
+
+    const styles = parsed.searchParams.get('styles') || ''
+    const format = parsed.searchParams.get('format') || 'image/png'
+    return [
+      `${GEOSERVER_CONFIG.wmsUrl}?service=WMS`,
+      'version=1.1.1',
+      'request=GetMap',
+      `layers=${encodeURIComponent(layers)}`,
+      `styles=${encodeURIComponent(styles)}`,
+      'srs=EPSG:3857',
+      `format=${encodeURIComponent(format)}`,
+      'transparent=true',
+      'width=256',
+      'height=256',
+      'bbox={bbox-epsg-3857}',
+    ].join('&')
+  } catch {
+    return fallback
+  }
 }
 
 /**

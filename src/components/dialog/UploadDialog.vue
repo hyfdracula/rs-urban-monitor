@@ -108,7 +108,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, UploadFilled, Refresh } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 import {
   uploadGeoTIFF,
   uploadShapefile,
@@ -136,7 +136,7 @@ const loadingLayers = ref(false)
 const WORKSPACE = GEOSERVER_CONFIG.workspace
 const router = useRouter()
 
-function onAutoDone({ taskId, wmsUrls }) {
+function onAutoDone({ taskId }) {
   visible.value = false
   router.push('/custom-area')
 }

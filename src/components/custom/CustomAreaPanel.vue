@@ -25,14 +25,64 @@
         v-for="task in tasks"
         :key="task.id"
         class="task-card"
-        :class="{ active: selectedId === task.id }"
+        :class="{ active: selectedId === (task.task_id || task.id) }"
         @click="selectTask(task)"
       >
         <div class="task-top">
           <span class="task-name">{{ task.name || '未命名研究区' }}</span>
-          <el-tag :type="statusType(task.status)" size="small" effect="dark">
-            {{ statusLabel(task.status) }}
-          </el-tag>
+          <div class="task-actions">
+            <el-tag :type="statusType(task.status)" size="small" effect="dark">
+              {{ statusLabel(task.status) }}
+            </el-tag>
+            <el-button
+              v-if="task.status === 'processing' || task.status === 'pending' || task.status === 'running'"
+              size="small"
+              text
+              type="warning"
+              @click.stop="onCancelTask(task)"
+            >
+              取消
+            </el-button>
+            <el-button
+              size="small"
+              text
+              type="info"
+              class="task-action-btn"
+              @click.stop="onRename(task)"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+            <el-button
+              size="small"
+              text
+              type="danger"
+              class="task-action-btn"
+              @click.stop="onDelete(task)"
+            >
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 进度条（仅 processing 任务） -->
+        <div
+          v-if="taskProgress[task.task_id] && (task.status === 'processing' || task.status === 'running')"
+          class="task-progress"
+        >
+          <div class="task-progress-bar">
+            <div class="task-progress-fill" :style="{ width: taskProgress[task.task_id].percent + '%' }" />
+          </div>
+          <div class="task-progress-info">
+            <span>{{ taskProgress[task.task_id].percent }}%</span>
+            <span v-if="taskProgress[task.task_id].step" class="task-progress-step">
+              {{ taskProgress[task.task_id].step }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 年份标签 -->
+        <div v-if="task.years?.length" class="task-tags">
+          <span v-for="y in task.years" :key="y" class="tag-chip year-chip">{{ y }}</span>
         </div>
         <div v-if="task.indicators?.length" class="task-tags">
           <span v-for="ind in task.indicators" :key="ind" class="tag-chip">{{ ind }}</span>
@@ -40,41 +90,14 @@
         <div class="task-date">{{ formatDate(task.created_at) }}</div>
       </div>
     </div>
-
-    <!-- Selected task detail -->
-    <div v-if="selectedTask" class="task-detail">
-      <div class="detail-head">
-        <span class="detail-title">{{ selectedTask.name || '未命名研究区' }}</span>
-        <el-button size="small" text @click="deselect">
-          <el-icon><Close /></el-icon>
-        </el-button>
-      </div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <span class="detail-label">状态</span>
-          <span class="detail-value">{{ statusLabel(selectedTask.status) }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">创建时间</span>
-          <span class="detail-value">{{ formatDate(selectedTask.created_at) }}</span>
-        </div>
-        <div v-if="selectedTask.indicators?.length" class="detail-item full">
-          <span class="detail-label">分析指标</span>
-          <span class="detail-value">{{ selectedTask.indicators.join('、') }}</span>
-        </div>
-        <div v-if="selectedTask.time_periods?.length" class="detail-item full">
-          <span class="detail-label">时间节点</span>
-          <span class="detail-value">{{ selectedTask.time_periods.join('、') }}</span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Loading, Refresh, Close } from '@element-plus/icons-vue'
-import { getComputeTasks } from '../../api'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Loading, Refresh, Delete, Edit } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getComputeTasks, getComputeProgress, cancelCompute, deleteBoundary, renameBoundary } from '../../api'
 
 const emit = defineEmits(['select', 'deselect'])
 
@@ -82,12 +105,21 @@ const loading = ref(false)
 const tasks = ref([])
 const selectedId = ref('')
 const selectedTask = ref(null)
+const taskProgress = ref({})   // taskId → { percent, step }
+let refreshTimer = null
+
+// 是否有正在计算的任务
+const hasProcessing = computed(() =>
+  tasks.value.some(t => t.status === 'processing' || t.status === 'pending' || t.status === 'running')
+)
 
 const STATUS_MAP = {
   pending: { label: '排队中', type: 'info' },
+  processing: { label: '计算中', type: 'warning' },
   running: { label: '计算中', type: 'warning' },
   completed: { label: '已完成', type: 'success' },
   failed: { label: '失败', type: 'danger' },
+  cancelled: { label: '已取消', type: 'info' },
 }
 
 function statusLabel(status) {
@@ -109,12 +141,22 @@ async function fetchTasks() {
   loading.value = true
   try {
     const data = await getComputeTasks()
-    tasks.value = Array.isArray(data) ? data : data.tasks || []
+    const prevIds = new Set(tasks.value.map(t => t.task_id))
+    tasks.value = Array.isArray(data) ? data : data.items || data.tasks || []
 
-    // Auto-select latest task if none selected
+    // Auto-select: 优先 processing 任务，其次最新任务
     if (tasks.value.length > 0 && !selectedId.value) {
-      const latest = tasks.value[0]
-      selectTask(latest)
+      const processing = tasks.value.find(t =>
+        t.status === 'processing' || t.status === 'pending' || t.status === 'running'
+      )
+      selectTask(processing || tasks.value[0])
+    }
+
+    // 如果有 processing 任务，启动进度轮询
+    if (hasProcessing.value) {
+      startProgressPolling()
+    } else {
+      stopProgressPolling()
     }
   } catch {
     tasks.value = []
@@ -122,10 +164,54 @@ async function fetchTasks() {
   loading.value = false
 }
 
+// ─── 进度轮询 ───
+let progressTimer = null
+
+function startProgressPolling() {
+  stopProgressPolling()
+  async function poll() {
+    for (const task of tasks.value) {
+      if (task.status !== 'processing' && task.status !== 'pending' && task.status !== 'running') continue
+      try {
+        const data = await getComputeProgress(task.task_id)
+        taskProgress.value[task.task_id] = {
+          percent: data.progress || 0,
+          step: data.current_step || '',
+        }
+        if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
+          // 状态变了，刷新整个任务列表
+          await fetchTasks()
+          if (selectedId.value === task.task_id) {
+            emit('select', task)
+          }
+          return
+        }
+      } catch { /* retry next cycle */ }
+    }
+  }
+  poll()
+  progressTimer = setInterval(poll, 5000)
+}
+
+function stopProgressPolling() {
+  if (progressTimer) { clearInterval(progressTimer); progressTimer = null }
+}
+
+// ─── 自动刷新：有 processing 任务时每 15s 刷新列表 ───
+function startAutoRefresh() {
+  stopAutoRefresh()
+  refreshTimer = setInterval(() => {
+    if (hasProcessing.value) fetchTasks()
+  }, 15000)
+}
+function stopAutoRefresh() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null }
+}
+
 function selectTask(task) {
-  selectedId.value = task.id
+  selectedId.value = task.task_id
   selectedTask.value = task
-  emit('select', task.id)
+  emit('select', task)
 }
 
 function deselect() {
@@ -134,9 +220,70 @@ function deselect() {
   emit('deselect')
 }
 
+async function onRename(task) {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入新名称', '重命名', {
+      inputValue: task.name || '',
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      inputValidator: (v) => (v && v.trim() ? true : '名称不能为空'),
+    })
+    const newName = value.trim()
+    await renameBoundary(task.id, newName)
+    ElMessage.success(`已更名为「${newName}」`)
+    await fetchTasks()
+    if (selectedId.value === task.task_id) {
+      const updated = tasks.value.find(t => t.task_id === task.task_id)
+      if (updated) emit('select', updated)
+    }
+  } catch {
+    // 用户取消
+  }
+}
+
+async function onDelete(task) {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除「${task.name || '未命名研究区'}」？`,
+      '删除确认',
+      { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' },
+    )
+  } catch {
+    return
+  }
+  try {
+    await deleteBoundary(task.id)
+    ElMessage.success(`已删除「${task.name || '未命名研究区'}」`)
+    if (selectedId.value === (task.task_id || task.id)) {
+      deselect()
+    }
+    tasks.value = tasks.value.filter(t => t.id !== task.id)
+  } catch {
+    ElMessage.error('删除失败')
+  }
+}
+
+async function onCancelTask(task) {
+  try {
+    await cancelCompute(task.task_id)
+    ElMessage.info('已发送取消请求')
+    await fetchTasks()
+  } catch {
+    ElMessage.error('取消失败')
+  }
+}
+
 onMounted(() => {
   fetchTasks()
+  startAutoRefresh()
 })
+
+onUnmounted(() => {
+  stopAutoRefresh()
+  stopProgressPolling()
+})
+
+defineExpose({ fetchTasks })
 </script>
 
 <style scoped>
@@ -173,6 +320,10 @@ onMounted(() => {
 .task-top { display: flex; justify-content: space-between; align-items: center; }
 .task-name { color: #ddd; font-size: 13px; font-weight: 500; }
 
+.task-actions { display: flex; align-items: center; gap: 4px; }
+.task-action-btn { opacity: 0; transition: opacity 0.2s; padding: 2px 4px; }
+.task-card:hover .task-action-btn { opacity: 1; }
+
 .task-tags {
   display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
 }
@@ -180,22 +331,24 @@ onMounted(() => {
   font-size: 11px; color: #999; background: #2a2a2a;
   padding: 1px 6px; border-radius: 4px;
 }
+.year-chip {
+  color: #FF9F43; background: #2a2015;
+}
 
 .task-date { color: #555; font-size: 11px; margin-top: 4px; }
 
-.task-detail {
-  border-top: 1px solid #333; padding: 12px; flex-shrink: 0;
+/* ── 任务卡片内进度条 ── */
+.task-progress { margin-top: 6px; }
+.task-progress-bar {
+  height: 4px; background: #333; border-radius: 2px; overflow: hidden;
 }
-.detail-head {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+.task-progress-fill {
+  height: 100%; background: #BE4BDB; border-radius: 2px;
+  transition: width 0.5s;
 }
-.detail-title { color: #ddd; font-size: 13px; font-weight: 600; }
-
-.detail-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+.task-progress-info {
+  display: flex; justify-content: space-between;
+  color: #888; font-size: 11px; margin-top: 3px;
 }
-.detail-item { display: flex; flex-direction: column; gap: 2px; }
-.detail-item.full { grid-column: 1 / -1; }
-.detail-label { color: #666; font-size: 11px; }
-.detail-value { color: #bbb; font-size: 12px; }
+.task-progress-step { color: #666; }
 </style>

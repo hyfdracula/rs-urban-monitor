@@ -11,16 +11,31 @@
       <div class="card"><div class="val green">{{ d.improvedArea }}</div><div class="unit">km²</div><div class="lbl">生态改善面积</div></div>
       <div class="card"><div class="val red">{{ d.degradedArea }}</div><div class="unit">km²</div><div class="lbl">生态退化面积</div></div>
     </div>
+
+    <!-- 长三角平台报告下载 -->
+    <div class="dl-section">
+      <div class="dl-card" @click="$emit('open-report')">
+        <span class="dl-icon">🏙️</span>
+        <div class="dl-info">
+          <span class="dl-name">长三角平台分析报告</span>
+          <span class="dl-desc">27城扩张与生态响应分析</span>
+        </div>
+        <span class="dl-arrow">›</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { getOverviewData } from '../../data/mockAnalysis'
+
+defineEmits(['open-report'])
+
 const d = getOverviewData()
 </script>
 
 <style scoped>
-.dashboard { padding: 14px; background: #1a1a1a; }
+.dashboard { padding: 14px; background: #1a1a1a; display: flex; flex-direction: column; flex: 1; }
 .title { font-size: 14px; font-weight: 600; color: #ddd; margin: 0 0 14px 0; }
 .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .card { background: #252525; border-radius: 8px; padding: 14px; text-align: center; }
@@ -28,4 +43,18 @@ const d = getOverviewData()
 .val.accent, .val.green, .val.red, .val.blue { color: #fff; }
 .unit { font-size: 11px; color: #888; margin-top: 2px; }
 .lbl { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+/* Download card */
+.dl-section { margin-top: auto; }
+.dl-card {
+  display: flex; align-items: center; gap: 10px;
+  background: #252525; border: 1px solid #333; border-radius: 8px;
+  padding: 12px; cursor: pointer; transition: all 0.2s;
+}
+.dl-card:hover { border-color: #555; background: #2a2a2a; }
+.dl-icon { font-size: 24px; flex-shrink: 0; }
+.dl-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.dl-name { color: #ddd; font-size: 13px; font-weight: 600; }
+.dl-desc { color: #666; font-size: 11px; }
+.dl-arrow { color: #555; font-size: 18px; flex-shrink: 0; }
 </style>

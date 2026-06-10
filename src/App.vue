@@ -26,10 +26,6 @@
           <el-icon><Setting /></el-icon>
           <span>GEE</span>
         </el-button>
-        <el-button text @click="exportMap">
-          <el-icon><Download /></el-icon>
-          <span>下载</span>
-        </el-button>
         <el-button text @click="publishMapService">
           <el-icon><Position /></el-icon>
           <span>发布</span>
@@ -75,10 +71,6 @@
               <el-icon><Setting /></el-icon>
               <span>GEE 配置</span>
             </button>
-            <button class="drawer-action-btn" @click="exportMap(); drawerOpen = false">
-              <el-icon><Download /></el-icon>
-              <span>导出报告</span>
-            </button>
             <button class="drawer-action-btn" @click="publishMapService(); drawerOpen = false">
               <el-icon><Position /></el-icon>
               <span>发布地图服务</span>
@@ -89,7 +81,7 @@
     </Teleport>
 
     <main class="app-main">
-      <router-view />
+      <router-view @open-report="showExportDialog = true" />
     </main>
 
     <!-- Dialogs -->
@@ -105,7 +97,6 @@ import { ref, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Location,
-  Download,
   Upload,
   Position,
   Setting,
@@ -128,15 +119,14 @@ const drawerOpen = ref(false)
 provide('openUploadDialog', () => { showUploadDialog.value = true })
 
 const navItems = [
-  { path: '/', title: '总览', icon: 'Location' },
+  { path: '/', title: '长三角城市扩张与生态响应可视化平台', icon: 'Location' },
   { path: '/custom-area', title: '自定义研究区', icon: 'Aim' },
 ]
 
-function exportMap() {
-  showExportDialog.value = true
-}
-
-function goUpload() {
+async function goUpload() {
+  if (route.path === '/') {
+    await router.push('/custom-area')
+  }
   showUploadDialog.value = true
 }
 
