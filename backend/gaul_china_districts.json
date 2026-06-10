@@ -1,0 +1,2060 @@
+[
+  {
+    "adm2_code": 12984,
+    "adm2_name": "Hefei",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12985,
+    "adm2_name": "Wuhu",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12986,
+    "adm2_name": "Bengbu",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12987,
+    "adm2_name": "Huainan",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12988,
+    "adm2_name": "Ma'anshan",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12989,
+    "adm2_name": "Huaibei",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12990,
+    "adm2_name": "Tongling",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12991,
+    "adm2_name": "Anqing",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12992,
+    "adm2_name": "Huangshan",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12993,
+    "adm2_name": "Chuzhou",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12994,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12995,
+    "adm2_name": "Suzhou",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12996,
+    "adm2_name": "Lu'an",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12997,
+    "adm2_name": "Xuancheng",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12998,
+    "adm2_name": "Chaohu",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 12999,
+    "adm2_name": "Chizhou",
+    "adm1_name": "Anhui Sheng",
+    "adm1_code": 898
+  },
+  {
+    "adm2_code": 13000,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Beijing Shi",
+    "adm1_code": 899
+  },
+  {
+    "adm2_code": 13001,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Beijing Shi",
+    "adm1_code": 899
+  },
+  {
+    "adm2_code": 13002,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Chongqing Shi",
+    "adm1_code": 900
+  },
+  {
+    "adm2_code": 13003,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Chongqing Shi",
+    "adm1_code": 900
+  },
+  {
+    "adm2_code": 13004,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Chongqing Shi",
+    "adm1_code": 900
+  },
+  {
+    "adm2_code": 13005,
+    "adm2_name": "Fuzhou",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13006,
+    "adm2_name": "Xiamen",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13007,
+    "adm2_name": "Putian",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13008,
+    "adm2_name": "Sanming",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13009,
+    "adm2_name": "Quanzhou",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13010,
+    "adm2_name": "Zhangzhou",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13011,
+    "adm2_name": "Nanping",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13012,
+    "adm2_name": "Longyan",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13013,
+    "adm2_name": "Ningde",
+    "adm1_name": "Fujian Sheng",
+    "adm1_code": 901
+  },
+  {
+    "adm2_code": 13014,
+    "adm2_name": "Lanzhou",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13015,
+    "adm2_name": "Jiayuguan",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13016,
+    "adm2_name": "Jinchang",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13017,
+    "adm2_name": "Baiyin",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13018,
+    "adm2_name": "Tianshui",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13019,
+    "adm2_name": "Jiuquan",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13020,
+    "adm2_name": "Zhangye",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13021,
+    "adm2_name": "Wuwei",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13022,
+    "adm2_name": "Dingxi",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13023,
+    "adm2_name": "Longnan",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13024,
+    "adm2_name": "Pingliang",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13025,
+    "adm2_name": "Qingyang",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13026,
+    "adm2_name": "Linxia Hui",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13027,
+    "adm2_name": "Gannan Tibetan",
+    "adm1_name": "Gansu Sheng",
+    "adm1_code": 902
+  },
+  {
+    "adm2_code": 13028,
+    "adm2_name": "Guangzhou",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13029,
+    "adm2_name": "Shaoguan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13030,
+    "adm2_name": "Shenzhen",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13031,
+    "adm2_name": "Zhuhai",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13032,
+    "adm2_name": "Shantou",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13033,
+    "adm2_name": "Foshan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13034,
+    "adm2_name": "Jiangmen",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13035,
+    "adm2_name": "Zhanjiang",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13036,
+    "adm2_name": "Maoming",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13037,
+    "adm2_name": "Zhaoqing",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13038,
+    "adm2_name": "Huizhou",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13039,
+    "adm2_name": "Meizhou",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13040,
+    "adm2_name": "Shanwei",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13041,
+    "adm2_name": "Heyuan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13042,
+    "adm2_name": "Yangjiang",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13043,
+    "adm2_name": "Qingyuan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13044,
+    "adm2_name": "Dongguan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13045,
+    "adm2_name": "Zhongshan",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13046,
+    "adm2_name": "Chaozhou",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13047,
+    "adm2_name": "Jieyang",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13048,
+    "adm2_name": "Yunfu",
+    "adm1_name": "Guangdong Sheng",
+    "adm1_code": 903
+  },
+  {
+    "adm2_code": 13049,
+    "adm2_name": "Nanning",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13050,
+    "adm2_name": "Liuzhou",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13051,
+    "adm2_name": "Guilin",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13052,
+    "adm2_name": "Wuzhou",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13053,
+    "adm2_name": "Beihai",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13054,
+    "adm2_name": "Fangchenggang",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13055,
+    "adm2_name": "Qinzhou",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13056,
+    "adm2_name": "Guigang",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13057,
+    "adm2_name": "Yulin",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13058,
+    "adm2_name": "Chongzuo",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13059,
+    "adm2_name": "Laibin",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13060,
+    "adm2_name": "Hezhou",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13061,
+    "adm2_name": "Baise",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13062,
+    "adm2_name": "Hechi",
+    "adm1_name": "Guangxi Zhuangzu Zizhiqu",
+    "adm1_code": 904
+  },
+  {
+    "adm2_code": 13063,
+    "adm2_name": "Guiyang",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13064,
+    "adm2_name": "Liupanshui",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13065,
+    "adm2_name": "Zunyi",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13066,
+    "adm2_name": "Tongren",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13067,
+    "adm2_name": "Qianxinan Buyei and Miao",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13068,
+    "adm2_name": "Bijie",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13069,
+    "adm2_name": "Anshun",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13070,
+    "adm2_name": "Qiandongnan Miao and Dong",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13071,
+    "adm2_name": "Qiannan Buyei and Miao",
+    "adm1_name": "Guizhou Sheng",
+    "adm1_code": 905
+  },
+  {
+    "adm2_code": 13072,
+    "adm2_name": "Hainan",
+    "adm1_name": "Hainan Sheng",
+    "adm1_code": 906
+  },
+  {
+    "adm2_code": 13073,
+    "adm2_name": "Haikou",
+    "adm1_name": "Hainan Sheng",
+    "adm1_code": 906
+  },
+  {
+    "adm2_code": 13074,
+    "adm2_name": "Sanya",
+    "adm1_name": "Hainan Sheng",
+    "adm1_code": 906
+  },
+  {
+    "adm2_code": 13075,
+    "adm2_name": "Shijiazhuang",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13076,
+    "adm2_name": "Tangshan",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13077,
+    "adm2_name": "Qinhuangdao",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13078,
+    "adm2_name": "Handan",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13079,
+    "adm2_name": "Xingtai",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13080,
+    "adm2_name": "Baoding",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13081,
+    "adm2_name": "Zhangjiakou",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13082,
+    "adm2_name": "Chengde",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13083,
+    "adm2_name": "Cangzhou",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13084,
+    "adm2_name": "Langfang",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13085,
+    "adm2_name": "Hengshui",
+    "adm1_name": "Hebei Sheng",
+    "adm1_code": 907
+  },
+  {
+    "adm2_code": 13086,
+    "adm2_name": "Harbin",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13087,
+    "adm2_name": "Qiqihar",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13088,
+    "adm2_name": "Jixi",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13089,
+    "adm2_name": "Hegang",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13090,
+    "adm2_name": "Shuangyashan",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13091,
+    "adm2_name": "Daqing",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13092,
+    "adm2_name": "Yichun",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13093,
+    "adm2_name": "Jiamusi",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13094,
+    "adm2_name": "Qitaihe",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13095,
+    "adm2_name": "Mudanjiang",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13096,
+    "adm2_name": "Heihe",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13097,
+    "adm2_name": "Suihua",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13098,
+    "adm2_name": "Daxing'anling",
+    "adm1_name": "Heilongjiang Sheng",
+    "adm1_code": 908
+  },
+  {
+    "adm2_code": 13099,
+    "adm2_name": "Zhengzhou",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13100,
+    "adm2_name": "Kaifeng",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13101,
+    "adm2_name": "Luoyang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13102,
+    "adm2_name": "Pingdingshan",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13103,
+    "adm2_name": "Anyang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13104,
+    "adm2_name": "Hebi",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13105,
+    "adm2_name": "Xinxiang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13106,
+    "adm2_name": "Jiaozuo",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13107,
+    "adm2_name": "Puyang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13108,
+    "adm2_name": "Xuchang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13109,
+    "adm2_name": "Luohe",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13110,
+    "adm2_name": "Sanmenxia",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13111,
+    "adm2_name": "Nanyang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13112,
+    "adm2_name": "Shangqiu",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13113,
+    "adm2_name": "Xinyang",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13114,
+    "adm2_name": "Zhoukou",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13115,
+    "adm2_name": "Zhumadian",
+    "adm1_name": "Henan Sheng",
+    "adm1_code": 909
+  },
+  {
+    "adm2_code": 13117,
+    "adm2_name": "Wuhan",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13118,
+    "adm2_name": "Huangshi",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13119,
+    "adm2_name": "Shiyan",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13120,
+    "adm2_name": "Yichang",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13121,
+    "adm2_name": "Xiangfan",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13122,
+    "adm2_name": "Ezhou",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13123,
+    "adm2_name": "Jingmen",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13124,
+    "adm2_name": "Xiaogan",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13125,
+    "adm2_name": "Jingzhou",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13126,
+    "adm2_name": "Huanggang",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13127,
+    "adm2_name": "Xianning",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13128,
+    "adm2_name": "Enshi Tujia and Miao",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13129,
+    "adm2_name": "Shennongjia",
+    "adm1_name": "Hubei Sheng",
+    "adm1_code": 911
+  },
+  {
+    "adm2_code": 13130,
+    "adm2_name": "Changsha",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13131,
+    "adm2_name": "Zhuzhou",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13132,
+    "adm2_name": "Xiangtan",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13133,
+    "adm2_name": "Hengyang",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13134,
+    "adm2_name": "Shaoyang",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13135,
+    "adm2_name": "Yueyang",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13136,
+    "adm2_name": "Changde",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13137,
+    "adm2_name": "Zhangjiajie",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13138,
+    "adm2_name": "Yiyang",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13139,
+    "adm2_name": "Chenzhou",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13140,
+    "adm2_name": "Yongzhou",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13141,
+    "adm2_name": "Huaihua",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13142,
+    "adm2_name": "Loudi",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13143,
+    "adm2_name": "Xiangxi Tujia and Miao",
+    "adm1_name": "Hunan Sheng",
+    "adm1_code": 912
+  },
+  {
+    "adm2_code": 13144,
+    "adm2_name": "Nanjing",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13145,
+    "adm2_name": "Wuxi",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13146,
+    "adm2_name": "Xuzhou",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13147,
+    "adm2_name": "Changzhou",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13148,
+    "adm2_name": "Suzhou",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13149,
+    "adm2_name": "Nantong",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13150,
+    "adm2_name": "Lianyungang",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13151,
+    "adm2_name": "Huai'an",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13152,
+    "adm2_name": "Yancheng",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13153,
+    "adm2_name": "Yangzhou",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13154,
+    "adm2_name": "Zhenjiang",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13155,
+    "adm2_name": "Taizhou",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13156,
+    "adm2_name": "Suqian",
+    "adm1_name": "Jiangsu Sheng",
+    "adm1_code": 913
+  },
+  {
+    "adm2_code": 13157,
+    "adm2_name": "Nanchang",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13158,
+    "adm2_name": "Jingdezhen",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13159,
+    "adm2_name": "Pingxiang",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13160,
+    "adm2_name": "Jiujiang",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13161,
+    "adm2_name": "Xinyu",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13162,
+    "adm2_name": "Yingtan",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13163,
+    "adm2_name": "Ganzhou",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13164,
+    "adm2_name": "Yichun",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13165,
+    "adm2_name": "Shangrao",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13166,
+    "adm2_name": "Ji'an",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13167,
+    "adm2_name": "Fuzhou",
+    "adm1_name": "Jiangxi Sheng",
+    "adm1_code": 914
+  },
+  {
+    "adm2_code": 13168,
+    "adm2_name": "Changchun",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13169,
+    "adm2_name": "Jilin",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13170,
+    "adm2_name": "Siping",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13171,
+    "adm2_name": "Liaoyuan",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13172,
+    "adm2_name": "Tonghua",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13173,
+    "adm2_name": "Baishan",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13174,
+    "adm2_name": "Songyuan",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13175,
+    "adm2_name": "Baicheng",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13176,
+    "adm2_name": "Yanbian Korean",
+    "adm1_name": "Jilin Sheng",
+    "adm1_code": 915
+  },
+  {
+    "adm2_code": 13177,
+    "adm2_name": "Shenyang",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13178,
+    "adm2_name": "Dalian",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13179,
+    "adm2_name": "Anshan",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13180,
+    "adm2_name": "Fushun",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13181,
+    "adm2_name": "Benxi",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13182,
+    "adm2_name": "Dandong",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13183,
+    "adm2_name": "Jinzhou",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13184,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13185,
+    "adm2_name": "Fuxin",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13186,
+    "adm2_name": "Liaoyang",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13187,
+    "adm2_name": "Panjin",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13188,
+    "adm2_name": "Tieling",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13189,
+    "adm2_name": "Chaoyang",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13190,
+    "adm2_name": "Huludao",
+    "adm1_name": "Liaoning Sheng",
+    "adm1_code": 916
+  },
+  {
+    "adm2_code": 13191,
+    "adm2_name": "Hohhot",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13192,
+    "adm2_name": "Baotou",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13193,
+    "adm2_name": "Wuhai",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13194,
+    "adm2_name": "Chifeng",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13195,
+    "adm2_name": "Hulunbuir",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13196,
+    "adm2_name": "Xing'an",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13197,
+    "adm2_name": "Tongliao",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13198,
+    "adm2_name": "Xilin Gol",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13199,
+    "adm2_name": "Ulaan Chab",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13200,
+    "adm2_name": "Ordos",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13201,
+    "adm2_name": "Baynnur",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13202,
+    "adm2_name": "Alxa",
+    "adm1_name": "Nei Mongol Zizhiqu",
+    "adm1_code": 917
+  },
+  {
+    "adm2_code": 13203,
+    "adm2_name": "Yinchuan",
+    "adm1_name": "Ningxia Huizu Zizhiqu",
+    "adm1_code": 918
+  },
+  {
+    "adm2_code": 13204,
+    "adm2_name": "Shizuishan",
+    "adm1_name": "Ningxia Huizu Zizhiqu",
+    "adm1_code": 918
+  },
+  {
+    "adm2_code": 13205,
+    "adm2_name": "Wuzhong",
+    "adm1_name": "Ningxia Huizu Zizhiqu",
+    "adm1_code": 918
+  },
+  {
+    "adm2_code": 13206,
+    "adm2_name": "Guyuan",
+    "adm1_name": "Ningxia Huizu Zizhiqu",
+    "adm1_code": 918
+  },
+  {
+    "adm2_code": 13207,
+    "adm2_name": "Xining",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13208,
+    "adm2_name": "Haidong",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13209,
+    "adm2_name": "Haibei Tibetan",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13210,
+    "adm2_name": "Huangnan Tibetan",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13211,
+    "adm2_name": "Hainan Tibetan",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13212,
+    "adm2_name": "Golog Tibetan",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13213,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13214,
+    "adm2_name": "Haixi Mongol and Tibetan",
+    "adm1_name": "Qinghai Sheng",
+    "adm1_code": 919
+  },
+  {
+    "adm2_code": 13215,
+    "adm2_name": "Xi'an",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13216,
+    "adm2_name": "Tongchuan",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13217,
+    "adm2_name": "Baoji",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13218,
+    "adm2_name": "Xianyang",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13219,
+    "adm2_name": "Weinan",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13220,
+    "adm2_name": "Yan'an",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13221,
+    "adm2_name": "Hanzhong",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13222,
+    "adm2_name": "Ankang",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13223,
+    "adm2_name": "Shangluo",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13224,
+    "adm2_name": "Yulin",
+    "adm1_name": "Shaanxi Sheng",
+    "adm1_code": 920
+  },
+  {
+    "adm2_code": 13225,
+    "adm2_name": "Jinan",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13226,
+    "adm2_name": "Qingdao",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13227,
+    "adm2_name": "Zibo",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13228,
+    "adm2_name": "Zaozhuang",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13229,
+    "adm2_name": "Dongying",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13230,
+    "adm2_name": "Yantai",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13231,
+    "adm2_name": "Weifang",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13232,
+    "adm2_name": "Jining",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13233,
+    "adm2_name": "Tai'an",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13234,
+    "adm2_name": "Weihai",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13235,
+    "adm2_name": "Rizhao",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13236,
+    "adm2_name": "Laiwu",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13237,
+    "adm2_name": "Linyi",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13238,
+    "adm2_name": "Dezhou",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13239,
+    "adm2_name": "Liaocheng",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13240,
+    "adm2_name": "Binzhou",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13241,
+    "adm2_name": "Heze",
+    "adm1_name": "Shandong Sheng",
+    "adm1_code": 921
+  },
+  {
+    "adm2_code": 13242,
+    "adm2_name": "Shanghai",
+    "adm1_name": "Shanghai Shi",
+    "adm1_code": 922
+  },
+  {
+    "adm2_code": 13243,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Shanghai Shi",
+    "adm1_code": 922
+  },
+  {
+    "adm2_code": 13244,
+    "adm2_name": "Taiyuan",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13245,
+    "adm2_name": "Datong",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13246,
+    "adm2_name": "Yangquan",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13247,
+    "adm2_name": "Changzhi",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13248,
+    "adm2_name": "Jincheng",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13249,
+    "adm2_name": "Shuozhou",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13250,
+    "adm2_name": "Xinzhou",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13251,
+    "adm2_name": "Luliang",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13252,
+    "adm2_name": "Jinzhong",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13253,
+    "adm2_name": "Linfen",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13254,
+    "adm2_name": "Yuncheng",
+    "adm1_name": "Shanxi Sheng",
+    "adm1_code": 923
+  },
+  {
+    "adm2_code": 13255,
+    "adm2_name": "Chengdu",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13256,
+    "adm2_name": "Zigong",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13257,
+    "adm2_name": "Panzhihua",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13258,
+    "adm2_name": "Luzhou",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13259,
+    "adm2_name": "Deyang",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13260,
+    "adm2_name": "Mianyang",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13261,
+    "adm2_name": "Guangyuan",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13262,
+    "adm2_name": "Suining",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13263,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13264,
+    "adm2_name": "Leshan",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13265,
+    "adm2_name": "Nanchong",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13266,
+    "adm2_name": "Yibin",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13267,
+    "adm2_name": "Guang'an",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13268,
+    "adm2_name": "Dazhou",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13269,
+    "adm2_name": "Ya'an",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13270,
+    "adm2_name": "Ngawa Tibetan and Qiang",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13271,
+    "adm2_name": "Garzê Tibetan",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13272,
+    "adm2_name": "Liangshan Yi",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13273,
+    "adm2_name": "Bazhong",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13274,
+    "adm2_name": "Meishan",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13275,
+    "adm2_name": "Ziyang",
+    "adm1_name": "Sichuan Sheng",
+    "adm1_code": 924
+  },
+  {
+    "adm2_code": 13278,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Tianjin Shi",
+    "adm1_code": 926
+  },
+  {
+    "adm2_code": 13279,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Tianjin Shi",
+    "adm1_code": 926
+  },
+  {
+    "adm2_code": 13280,
+    "adm2_name": "Ürümqi",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13281,
+    "adm2_name": "Karamay",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13282,
+    "adm2_name": "Turfan",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13283,
+    "adm2_name": "Hami",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13284,
+    "adm2_name": "Changji Hui",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13285,
+    "adm2_name": "Börtala Mongol",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13286,
+    "adm2_name": "Bayin'gholin Mongol",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13287,
+    "adm2_name": "Aksu",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13288,
+    "adm2_name": "Kizilsu Kirghiz",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13289,
+    "adm2_name": "Kashgar",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13290,
+    "adm2_name": "Khotan",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13291,
+    "adm2_name": "Name Unknown",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13292,
+    "adm2_name": "Ili Kazakh",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13293,
+    "adm2_name": "Tacheng",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13294,
+    "adm2_name": "Altay",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13295,
+    "adm2_name": "Shihezi",
+    "adm1_name": "Xinjiang Uygur Zizhiqu",
+    "adm1_code": 927
+  },
+  {
+    "adm2_code": 13296,
+    "adm2_name": "Lhasa",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13297,
+    "adm2_name": "Chamdo",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13298,
+    "adm2_name": "Shannan",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13299,
+    "adm2_name": "Shigatse",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13300,
+    "adm2_name": "Nagchu",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13301,
+    "adm2_name": "Ngari",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13302,
+    "adm2_name": "Nyingtri",
+    "adm1_name": "Xizang Zizhiqu",
+    "adm1_code": 928
+  },
+  {
+    "adm2_code": 13303,
+    "adm2_name": "Kunming",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13304,
+    "adm2_name": "Qujing",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13305,
+    "adm2_name": "Yuxi",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13306,
+    "adm2_name": "Zhaotong",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13307,
+    "adm2_name": "Chuxiong Yi",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13308,
+    "adm2_name": "Honghe Hani and Yi",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13309,
+    "adm2_name": "Wenshan Zhuang and Miao",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13310,
+    "adm2_name": "Pu'er",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13311,
+    "adm2_name": "Xishuangbanna Dai",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13312,
+    "adm2_name": "Dali Bai",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13313,
+    "adm2_name": "Baoshan",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13314,
+    "adm2_name": "Dehong Dai and Jingpo",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13315,
+    "adm2_name": "Lijiang",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13316,
+    "adm2_name": "Nujiang Lisu",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13317,
+    "adm2_name": "Dêqên Tibetan",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13318,
+    "adm2_name": "Lincang",
+    "adm1_name": "Yunnan Sheng",
+    "adm1_code": 929
+  },
+  {
+    "adm2_code": 13319,
+    "adm2_name": "Hangzhou",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13320,
+    "adm2_name": "Ningbo",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13321,
+    "adm2_name": "Wenzhou",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13322,
+    "adm2_name": "Jiaxing",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13323,
+    "adm2_name": "Huzhou",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13324,
+    "adm2_name": "Shaoxing",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13325,
+    "adm2_name": "Jinhua",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13326,
+    "adm2_name": "Quzhou",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13327,
+    "adm2_name": "Zhoushan",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13328,
+    "adm2_name": "Taizhou",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  },
+  {
+    "adm2_code": 13329,
+    "adm2_name": "Lishui",
+    "adm1_name": "Zhejiang Sheng",
+    "adm1_code": 930
+  }
+]

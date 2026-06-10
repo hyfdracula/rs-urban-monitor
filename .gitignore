@@ -14,6 +14,19 @@ dist-ssr
 .env
 geoserver-2.25.5-bin/
 
+# Python backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+venv/
+.venv/
+backend/python311-embed/
+*.json.enc
+gee-key.json
+*.log
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
