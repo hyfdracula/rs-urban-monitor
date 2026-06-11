@@ -83,16 +83,28 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import * as echarts from 'echarts'
+import echarts from '../utils/charts'
 import { Download } from '@element-plus/icons-vue'
-import { getReportData, getCityTableData } from '../data/mockAnalysis'
+import { fetchReportData } from '../services/dataService'
 import ExportReportDialog from '../components/dialog/ExportReportDialog.vue'
 import { exportCsv } from '../utils/csvExport'
 
-const reportData = getReportData()
+const EMPTY_REPORT = {
+  studyArea: '',
+  timeRange: '',
+  expansionTable: [],
+  ecologyTable: [],
+  modeDistribution: [],
+  districtRanking: [],
+  rseiTrend: [],
+  ecologyGradeDistribution: [],
+  scatterData: [],
+}
 
-const studyArea = ref(reportData.studyArea)
-const timeRange = ref(reportData.timeRange)
+const reportData = ref(EMPTY_REPORT)
+
+const studyArea = ref(reportData.value.studyArea)
+const timeRange = ref(reportData.value.timeRange)
 const showExportDialog = ref(false)
 
 const modeChart = ref(null)
@@ -107,8 +119,18 @@ let rseiTrendInstance = null
 let gradeInstance = null
 let scatterInstance = null
 
-const expansionTable = ref(reportData.expansionTable)
-const ecologyTable = ref(reportData.ecologyTable)
+const expansionTable = ref(reportData.value.expansionTable)
+const ecologyTable = ref(reportData.value.ecologyTable)
+
+async function loadReportData() {
+  const data = await fetchReportData()
+  reportData.value = data
+  studyArea.value = data.studyArea
+  timeRange.value = data.timeRange
+  expansionTable.value = data.expansionTable || []
+  ecologyTable.value = data.ecologyTable || []
+  initCharts()
+}
 
 function exportExpansionCsv() {
   exportCsv(
@@ -138,7 +160,7 @@ function initCharts() {
       series: [{
         type: 'pie',
         radius: ['40%', '70%'],
-        data: reportData.modeDistribution.map(item => ({
+        data: reportData.value.modeDistribution.map(item => ({
           name: item.name,
           value: item.value,
           itemStyle: { color: item.color },
@@ -158,13 +180,13 @@ function initCharts() {
       xAxis: { type: 'value', axisLine: { lineStyle: { color: '#444' } }, axisLabel: { color: '#888' } },
       yAxis: {
         type: 'category',
-        data: reportData.districtRanking.map(item => item.name).reverse(),
+        data: reportData.value.districtRanking.map(item => item.name).reverse(),
         axisLine: { lineStyle: { color: '#444' } },
         axisLabel: { color: '#ccc' },
       },
       series: [{
         type: 'bar',
-        data: reportData.districtRanking.map(item => item.value).reverse(),
+        data: reportData.value.districtRanking.map(item => item.value).reverse(),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: '#FF6B6B' },
@@ -185,7 +207,7 @@ function initCharts() {
       grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
       xAxis: {
         type: 'category',
-        data: reportData.rseiTrend.map(item => item.year),
+        data: reportData.value.rseiTrend.map(item => item.year),
         axisLine: { lineStyle: { color: '#444' } },
         axisLabel: { color: '#ccc' },
       },
@@ -199,7 +221,7 @@ function initCharts() {
       },
       series: [{
         type: 'line',
-        data: reportData.rseiTrend.map(item => item.value),
+        data: reportData.value.rseiTrend.map(item => item.value),
         smooth: true,
         lineStyle: { color: '#51CF66', width: 2 },
         itemStyle: { color: '#51CF66' },
@@ -222,7 +244,7 @@ function initCharts() {
       grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
       xAxis: {
         type: 'category',
-        data: reportData.ecologyGradeDistribution.map(item => item.grade),
+        data: reportData.value.ecologyGradeDistribution.map(item => item.grade),
         axisLine: { lineStyle: { color: '#444' } },
         axisLabel: { color: '#ccc' },
       },
@@ -233,7 +255,7 @@ function initCharts() {
       },
       series: [{
         type: 'bar',
-        data: reportData.ecologyGradeDistribution.map(item => ({
+        data: reportData.value.ecologyGradeDistribution.map(item => ({
           value: item.area,
           itemStyle: { color: item.color },
         })),
@@ -266,7 +288,7 @@ function initCharts() {
       series: [{
         type: 'scatter',
         symbolSize: 20,
-        data: reportData.scatterData,
+        data: reportData.value.scatterData,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
             { offset: 0, color: '#FF6B6B' },
@@ -292,6 +314,7 @@ function handleResize() {
 
 onMounted(() => {
   initCharts()
+  loadReportData()
   window.addEventListener('resize', handleResize)
 })
 

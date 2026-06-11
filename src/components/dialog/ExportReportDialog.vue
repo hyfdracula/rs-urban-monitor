@@ -114,10 +114,9 @@
 <script setup>
 import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { Download } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
-import { buildPdfReport, downloadPdf, captureElement, captureMap } from '../../utils/pdfReport'
-import { getReportData } from '../../data/mockAnalysis'
-import { getSocioEconomicData } from '../../data/mockSocioEconomic'
+import echarts from '../../utils/charts'
+import { buildPdfReport, downloadPdf, captureMap } from '../../utils/pdfReport'
+import { fetchReportData, fetchSocioEconomicData } from '../../services/dataService'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -143,9 +142,26 @@ const availableSections = [
   { key: 'correlation', icon: '🔗', label: '扩张与生态关联分析' },
 ]
 
-const reportData = getReportData()
-const expansionTable = ref(reportData.expansionTable)
-const ecologyTable = ref(reportData.ecologyTable)
+const EMPTY_REPORT = {
+  expansionTable: [],
+  ecologyTable: [],
+  modeDistribution: [],
+  districtRanking: [],
+  rseiTrend: [],
+  ecologyGradeDistribution: [],
+  scatterData: [],
+}
+
+const reportData = ref(EMPTY_REPORT)
+const expansionTable = ref([])
+const ecologyTable = ref([])
+
+async function loadReportData() {
+  const data = await fetchReportData()
+  reportData.value = { ...EMPTY_REPORT, ...data }
+  expansionTable.value = reportData.value.expansionTable
+  ecologyTable.value = reportData.value.ecologyTable
+}
 
 // Chart refs
 const modeChart = ref(null)
@@ -160,7 +176,7 @@ watch(() => props.modelValue, (val) => {
   visible.value = val
   if (val) {
     tab.value = 'view'
-    nextTick(() => initCharts())
+    loadReportData().then(() => nextTick(() => initCharts()))
   }
 })
 watch(visible, (val) => { emit('update:modelValue', val) })
@@ -179,7 +195,7 @@ function initCharts() {
       tooltip: { trigger: 'item' },
       series: [{
         type: 'pie', radius: ['40%', '70%'],
-        data: reportData.modeDistribution.map(item => ({
+        data: reportData.value.modeDistribution.map(item => ({
           name: item.name, value: item.value, itemStyle: { color: item.color },
         })),
         label: { color: '#ccc', fontSize: 11 },
@@ -197,12 +213,12 @@ function initCharts() {
       xAxis: { type: 'value', axisLabel: { color: '#888' }, axisLine: { lineStyle: { color: '#444' } } },
       yAxis: {
         type: 'category',
-        data: reportData.districtRanking.map(i => i.name).reverse(),
+        data: reportData.value.districtRanking.map(i => i.name).reverse(),
         axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
       },
       series: [{
         type: 'bar',
-        data: reportData.districtRanking.map(i => i.value).reverse(),
+        data: reportData.value.districtRanking.map(i => i.value).reverse(),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: '#FF6B6B' }, { offset: 1, color: '#FFA94D' },
@@ -221,7 +237,7 @@ function initCharts() {
       tooltip: { trigger: 'axis' },
       grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
       xAxis: {
-        type: 'category', data: reportData.rseiTrend.map(i => i.year),
+        type: 'category', data: reportData.value.rseiTrend.map(i => i.year),
         axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
       },
       yAxis: {
@@ -229,7 +245,7 @@ function initCharts() {
         axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: '#333' } },
       },
       series: [{
-        type: 'line', data: reportData.rseiTrend.map(i => i.value), smooth: true,
+        type: 'line', data: reportData.value.rseiTrend.map(i => i.value), smooth: true,
         lineStyle: { color: '#51CF66', width: 2 }, itemStyle: { color: '#51CF66' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -248,13 +264,13 @@ function initCharts() {
       tooltip: { trigger: 'axis' },
       grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
       xAxis: {
-        type: 'category', data: reportData.ecologyGradeDistribution.map(i => i.grade),
+        type: 'category', data: reportData.value.ecologyGradeDistribution.map(i => i.grade),
         axisLabel: { color: '#ccc' }, axisLine: { lineStyle: { color: '#444' } },
       },
       yAxis: { type: 'value', axisLabel: { color: '#888' } },
       series: [{
         type: 'bar', barWidth: '50%',
-        data: reportData.ecologyGradeDistribution.map(i => ({ value: i.area, itemStyle: { color: i.color } })),
+        data: reportData.value.ecologyGradeDistribution.map(i => ({ value: i.area, itemStyle: { color: i.color } })),
       }],
     })
     instances.push(inst)
@@ -276,7 +292,7 @@ function initCharts() {
       },
       series: [{
         type: 'scatter', symbolSize: 16,
-        data: reportData.scatterData,
+        data: reportData.value.scatterData,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
             { offset: 0, color: '#FF6B6B' }, { offset: 1, color: '#4DABF7' },
@@ -300,7 +316,7 @@ async function doExport() {
   if (selectedSections.value.length === 0) return
   generating.value = true
   try {
-    const socioData = getSocioEconomicData()
+    const socioData = await fetchSocioEconomicData()
     const sections = []
 
     // Map screenshot
@@ -320,12 +336,12 @@ async function doExport() {
       sections.push({
         key: 'expansion', title: '建设用地扩张分析',
         cards: [
-          { value: `${reportData.expansionTable[0]?.newArea || 0} km²`, label: '新增建设用地' },
-          { value: `${reportData.expansionTable.length}个城市`, label: '研究城市数' },
+          { value: `${reportData.value.expansionTable[0]?.newArea || 0} km²`, label: '新增建设用地' },
+          { value: `${reportData.value.expansionTable.length}个城市`, label: '研究城市数' },
         ],
         table: {
           headers: ['城市', '新增(km²)', '速率(%)', '强度', '主导模式'],
-          rows: (reportData.expansionTable || []).slice(0, 8).map(r => [
+          rows: (reportData.value.expansionTable || []).slice(0, 8).map(r => [
             r.district, String(r.newArea), String(r.rate), String(r.intensity), r.mode,
           ]),
         },
@@ -339,7 +355,7 @@ async function doExport() {
         cards: [{ value: '0.58', label: 'RSEI 均值' }, { value: '-0.07', label: 'RSEI 变化' }],
         table: {
           headers: ['等级', '面积(km²)', '占比(%)', '较上期变化'],
-          rows: (reportData.ecologyTable || []).map(r => [r.grade, String(r.area), `${r.percent}%`, r.change]),
+          rows: (reportData.value.ecologyTable || []).map(r => [r.grade, String(r.area), `${r.percent}%`, r.change]),
         },
       })
     }

@@ -23,9 +23,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import * as echarts from 'echarts'
-import { getReportData } from '../../data/mockAnalysis'
+import echarts from '../../utils/charts'
 import { DISTRICTS } from '../../data/districts'
+import { fetchReportData } from '../../services/dataService'
 
 const emit = defineEmits(['district-click'])
 
@@ -39,7 +39,7 @@ function findCityCenter(name) {
   return found?.center || null
 }
 
-const scatterData = computed(() => getReportData().scatterData || [])
+const scatterData = ref([])
 
 // Compute Pearson correlation coefficient
 const correlation = computed(() => {
@@ -77,19 +77,7 @@ const coupledCities = computed(() => {
 function init() {
   if (scatterChart.value) {
     scatter = echarts.init(scatterChart.value)
-    const data = scatterData.value
-    scatter.setOption({
-      backgroundColor: 'transparent', tooltip: { trigger: 'item', formatter: (p) => `${p.data.name}<br/>扩张速率: ${p.value[0]}%<br/>RSEI变化: ${p.value[1]}` },
-      grid: { left: '8%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
-      xAxis: { name: '扩张速率(%)', nameTextStyle: { color: '#888', fontSize: 10 }, axisLine: { lineStyle: { color: '#444' } }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { lineStyle: { color: '#333' } } },
-      yAxis: { name: 'RSEI变化', nameTextStyle: { color: '#888', fontSize: 10 }, axisLine: { lineStyle: { color: '#444' } }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { lineStyle: { color: '#333' } } },
-      series: [{
-        type: 'scatter', symbolSize: 16,
-        data: data.map(([x, y, name]) => ({ value: [x, y], name, itemStyle: { color: y < -0.05 ? '#FF6B6B' : y < -0.02 ? '#FFD43B' : '#69DB7C' } })),
-        label: { show: true, formatter: '{b}', position: 'right', fontSize: 10, color: '#ccc' },
-        emphasis: { focus: 'self', itemStyle: { shadowBlur: 10, shadowColor: 'rgba(255,255,255,0.3)' } },
-      }],
-    })
+    updateChart()
     scatter.on('click', (params) => {
       const center = findCityCenter(params.data?.name)
       if (center) emit('district-click', { name: params.data.name, center })
@@ -97,8 +85,46 @@ function init() {
   }
 }
 
-onMounted(() => { init(); loading.value = false; window.addEventListener('chart-replay', () => { scatter?.clear(); init() }) })
-onUnmounted(() => { scatter?.dispose(); window.removeEventListener('chart-replay', () => {}) })
+function handleChartReplay() {
+  scatter?.clear()
+  updateChart()
+}
+
+function updateChart() {
+  if (!scatter) return
+  const data = scatterData.value
+  scatter.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'item', formatter: (p) => `${p.data.name}<br/>扩张速率: ${p.value[0]}%<br/>RSEI变化: ${p.value[1]}` },
+    grid: { left: '8%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
+    xAxis: { name: '扩张速率(%)', nameTextStyle: { color: '#888', fontSize: 10 }, axisLine: { lineStyle: { color: '#444' } }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { lineStyle: { color: '#333' } } },
+    yAxis: { name: 'RSEI变化', nameTextStyle: { color: '#888', fontSize: 10 }, axisLine: { lineStyle: { color: '#444' } }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { lineStyle: { color: '#333' } } },
+    series: [{
+      type: 'scatter',
+      symbolSize: 16,
+      data: data.map(([x, y, name]) => ({ value: [x, y], name, itemStyle: { color: y < -0.05 ? '#FF6B6B' : y < -0.02 ? '#FFD43B' : '#69DB7C' } })),
+      label: { show: true, formatter: '{b}', position: 'right', fontSize: 10, color: '#ccc' },
+      emphasis: { focus: 'self', itemStyle: { shadowBlur: 10, shadowColor: 'rgba(255,255,255,0.3)' } },
+    }],
+  })
+}
+
+async function loadScatterData() {
+  const report = await fetchReportData()
+  scatterData.value = report.scatterData || []
+  updateChart()
+}
+
+onMounted(() => {
+  init()
+  loadScatterData()
+  loading.value = false
+  window.addEventListener('chart-replay', handleChartReplay)
+})
+onUnmounted(() => {
+  window.removeEventListener('chart-replay', handleChartReplay)
+  scatter?.dispose()
+})
 </script>
 
 <style scoped>

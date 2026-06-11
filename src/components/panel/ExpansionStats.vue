@@ -37,13 +37,19 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import * as echarts from 'echarts'
-import { getExpansionData } from '../../data/mockAnalysis'
+import echarts from '../../utils/charts'
 
 const props = defineProps({
   data: {
     type: Object,
-    default: () => getExpansionData(),
+    default: () => ({
+      totalArea: 0,
+      patches: 0,
+      avgPatchSize: 0,
+      expansionRate: 0,
+      modeDistribution: [],
+      districtRanking: [],
+    }),
   },
 })
 
@@ -62,7 +68,7 @@ watch(() => props.data, (val) => {
   updateCharts()
 }, { deep: true })
 
-function formatNumber(num) {
+function formatNumber(num = 0) {
   return num.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
@@ -175,12 +181,12 @@ onMounted(() => {
   initCharts()
   loading.value = false
   window.addEventListener('resize', handleResize)
-  window.addEventListener('chart-replay', () => { pieInstance?.clear(); barInstance?.clear(); updateCharts() })
+  window.addEventListener('chart-replay', handleChartReplay)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
-  window.removeEventListener('chart-replay', () => { updateCharts() })
+  window.removeEventListener('chart-replay', handleChartReplay)
   pieInstance?.dispose()
   barInstance?.dispose()
 })
@@ -188,6 +194,12 @@ onUnmounted(() => {
 function handleResize() {
   pieInstance?.resize()
   barInstance?.resize()
+}
+
+function handleChartReplay() {
+  pieInstance?.clear()
+  barInstance?.clear()
+  updateCharts()
 }
 </script>
 

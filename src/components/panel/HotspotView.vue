@@ -14,10 +14,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import * as echarts from 'echarts'
-import { getHotspotData } from '../../data/mockAnalysis'
+import echarts from '../../utils/charts'
 
-const props = defineProps({ data: { type: Array, default: () => getHotspotData() } })
+const props = defineProps({ data: { type: Array, default: () => [] } })
 const emit = defineEmits(['district-click'])
 const barChart = ref(null)
 let barInstance = null
@@ -55,8 +54,26 @@ function updateChart() {
     }],
   })
 }
-onMounted(() => { initChart(); loading.value = false; window.addEventListener('resize', () => barInstance?.resize()); window.addEventListener('chart-replay', () => { barInstance?.clear(); updateChart() }) })
-onUnmounted(() => { barInstance?.dispose(); window.removeEventListener('resize', () => {}); window.removeEventListener('chart-replay', () => {}) })
+function handleResize() {
+  barInstance?.resize()
+}
+
+function handleChartReplay() {
+  barInstance?.clear()
+  updateChart()
+}
+
+onMounted(() => {
+  initChart()
+  loading.value = false
+  window.addEventListener('resize', handleResize)
+  window.addEventListener('chart-replay', handleChartReplay)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  window.removeEventListener('chart-replay', handleChartReplay)
+  barInstance?.dispose()
+})
 </script>
 
 <style scoped>

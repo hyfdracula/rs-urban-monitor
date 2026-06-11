@@ -59,13 +59,18 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import * as echarts from 'echarts'
-import { getSocioEconomicData } from '../../data/mockSocioEconomic'
+import echarts from '../../utils/charts'
 
 const props = defineProps({
   data: {
     type: Object,
-    default: () => getSocioEconomicData(),
+    default: () => ({
+      population: {},
+      gdp: {},
+      districtPopulation: [],
+      districtGdp: [],
+      ntlTrend: [],
+    }),
   },
 })
 
@@ -307,27 +312,36 @@ function updateCharts() {
   updateNtlChart()
 }
 
-onMounted(() => {
-  initCharts()
-  loading.value = false
-  window.addEventListener('resize', handleResize)
-  window.addEventListener('chart-replay', () => { structureInstance?.clear(); populationInstance?.clear(); gdpInstance?.clear(); ntlInstance?.clear(); updateCharts() })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  structureInstance?.dispose()
-  populationInstance?.dispose()
-  gdpInstance?.dispose()
-  ntlInstance?.dispose()
-})
-
 function handleResize() {
   structureInstance?.resize()
   populationInstance?.resize()
   gdpInstance?.resize()
   ntlInstance?.resize()
 }
+
+function handleChartReplay() {
+  structureInstance?.clear()
+  populationInstance?.clear()
+  gdpInstance?.clear()
+  ntlInstance?.clear()
+  updateCharts()
+}
+
+onMounted(() => {
+  initCharts()
+  loading.value = false
+  window.addEventListener('resize', handleResize)
+  window.addEventListener('chart-replay', handleChartReplay)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  window.removeEventListener('chart-replay', handleChartReplay)
+  structureInstance?.dispose()
+  populationInstance?.dispose()
+  gdpInstance?.dispose()
+  ntlInstance?.dispose()
+})
 </script>
 
 <style scoped>

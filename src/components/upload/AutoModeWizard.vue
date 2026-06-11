@@ -193,11 +193,17 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage, ElNotification } from 'element-plus'
 import { uploadBoundary } from '../../api'
+import {
+  ALL_INDICATORS,
+  addYearToSelection,
+  analyzeDataAvailability,
+  getGdpWarning,
+  isDisabledYearDate,
+  quickPickYears,
+  removeYearFromSelection,
+} from '../../utils/uploadYears'
 import StepIndicators from './StepIndicators.vue'
 import IndicatorImpactDialog from './IndicatorImpactDialog.vue'
-
-// All 6 indicator keys (used for default and impact check)
-const ALL_INDICATORS = ['rsei', 'construction', 'expansion', 'nightLight', 'population', 'gdp']
 
 const emit = defineEmits(['back', 'done'])
 
@@ -217,126 +223,29 @@ const indicatorConfig = ref({ indicators: [...ALL_INDICATORS] })
 const currentYear = new Date().getFullYear()
 
 // ─── 数据可用性分析 ───
-const dataWarnings = computed(() => {
-  const years = selectedYears.value
-  const warnings = []
-  const sensorMap = {}
-
-  years.forEach(y => {
-    if (y >= 2021) sensorMap[y] = 'Landsat 9 OLI-2'
-    else if (y >= 2013) sensorMap[y] = 'Landsat 8 OLI'
-    else if (y >= 1999 && y <= 2003) sensorMap[y] = 'Landsat 7 ETM+'
-    else sensorMap[y] = 'Landsat 5 TM'
-  })
-
-  // 1. GDP 数据缺失（Kummu et al. 2025 仅覆盖 1990-2022）
-  const noGDP = years.filter(y => y < 1990 || y > 2022)
-  if (noGDP.length > 0) {
-    warnings.push({
-      type: 'error',
-      icon: 'WarningFilled',
-      title: 'GDP 数据缺失',
-      detail: `年份 ${noGDP.join('、')} 无 GDP 数据（Kummu 数据集仅覆盖 1990-2022），GDP 相关指标将显示为"数据暂缺"`,
-    })
-  }
-
-  // 2. 人口数据缺失（WorldPop 仅 2000-2020）
-  const noPop = years.filter(y => y < 2000 || y > 2020)
-  if (noPop.length > 0) {
-    warnings.push({
-      type: 'warning',
-      icon: 'User',
-      title: '人口数据缺失',
-      detail: `年份 ${noPop.join('、')} 无 WorldPop 人口数据（仅 2000-2020 可用），人口指标将显示为 0`,
-    })
-  }
-
-  // 3. Landsat 5 后期数据质量风险
-  const lt5Late = years.filter(y => y >= 2011 && y <= 2012)
-  if (lt5Late.length > 0) {
-    warnings.push({
-      type: 'warning',
-      icon: 'Warning',
-      title: 'Landsat 5 数据质量风险',
-      detail: `年份 ${lt5Late.join('、')} 使用 Landsat 5 TM，该卫星在 2011-2012 年出现放大器漂移，数据质量可能下降`,
-    })
-  }
-
-  // 4. 跨传感器对比
-  const sensors = [...new Set(Object.values(sensorMap))]
-  if (sensors.length >= 2) {
-    warnings.push({
-      type: 'info',
-      icon: 'InfoFilled',
-      title: '跨传感器对比',
-      detail: `所选年份涉及 ${sensors.length} 种传感器（${sensors.join('、')}），不同传感器的波段响应差异可能影响年际对比的一致性`,
-    })
-  }
-
-  // 5. Landsat 7 SLC-off 说明
-  const le07 = years.filter(y => y >= 1999 && y <= 2003)
-  if (le07.length > 0) {
-    warnings.push({
-      type: 'info',
-      icon: 'InfoFilled',
-      title: 'Landsat 7 ETM+ 说明',
-      detail: `年份 ${le07.join('、')} 使用 Landsat 7 ETM+，2003年5月后存在 SLC-off 条纹，代码已用中值合成缓解`,
-    })
-  }
-
-  // 6. VIIRS/DMSP 交叉年份
-  const overlap = years.filter(y => y === 2012 || y === 2013)
-  if (overlap.length > 0) {
-    warnings.push({
-      type: 'info',
-      icon: 'InfoFilled',
-      title: '夜灯数据源切换',
-      detail: `年份 ${overlap.join('、')} 处于 DMSP-OLS → VIIRS 数据源切换期，夜灯指标可能存在断档`,
-    })
-  }
-
-  return {
-    warnings,
-    sensorMap,
-    hasBlocker: warnings.some(w => w.type === 'error'),
-  }
-})
+const dataWarnings = computed(() => analyzeDataAvailability(selectedYears.value))
 
 // 年份选择区域的内联 GDP 警告
-const gdpWarning = computed(() => {
-  const noGDP = selectedYears.value.filter(y => y < 1990 || y > 2022)
-  if (noGDP.length > 0) {
-    return `年份 ${noGDP.join('、')} 无 GDP 数据，经济指标将显示为"数据暂缺"`
-  }
-  return ''
-})
+const gdpWarning = computed(() => getGdpWarning(selectedYears.value))
 
 function disableDate(date) {
-  const y = date.getFullYear()
-  return y < 1984 || y > currentYear
+  return isDisabledYearDate(date, currentYear)
 }
 
 function addYear(val) {
-  if (!val) return
-  const y = new Date(val).getFullYear()
   // 选完立即清空 picker，允许连续选不同年份
   pickerValue.value = null
-  if (y < 1984 || y > currentYear) return
-  if (selectedYears.value.includes(y)) return
-  if (selectedYears.value.length >= 5) {
-    ElMessage.warning('最多选择5个年份')
-    return
-  }
-  selectedYears.value.push(y)
-  selectedYears.value.sort()
+  const result = addYearToSelection(selectedYears.value, val, currentYear)
+  if (result.warning) ElMessage.warning(result.warning)
+  selectedYears.value = result.years
 }
 
 function removeYear(y) {
-  selectedYears.value = selectedYears.value.filter(v => v !== y)
+  selectedYears.value = removeYearFromSelection(selectedYears.value, y)
 }
 
 function quickPick(years) {
-  selectedYears.value = [...years]
+  selectedYears.value = quickPickYears(years)
 }
 
 function onFileChange(file) {

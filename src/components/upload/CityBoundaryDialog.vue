@@ -184,10 +184,15 @@ import {
 import { ElMessage } from 'element-plus'
 import { PROVINCES, CITIES, ALL_AREAS, MUNICIPALITIES } from '../../data/chinaCities'
 import { uploadBoundary } from '../../api'
+import {
+  ALL_INDICATORS,
+  addYearToSelection,
+  isDisabledYearDate,
+  quickPickYears,
+  removeYearFromSelection,
+} from '../../utils/uploadYears'
 import StepIndicators from './StepIndicators.vue'
 import IndicatorImpactDialog from './IndicatorImpactDialog.vue'
-
-const ALL_INDICATORS = ['rsei', 'construction', 'expansion', 'nightLight', 'population', 'gdp']
 
 const props = defineProps({ visible: Boolean })
 const emit = defineEmits(['update:visible', 'done'])
@@ -314,30 +319,22 @@ function handleDownload() {
 
 // ─── Year helpers ───
 function disableDate(date) {
-  const y = date.getFullYear()
-  return y < 1984 || y > currentYear
+  return isDisabledYearDate(date, currentYear)
 }
 
 function addYear(val) {
-  if (!val) return
-  const y = new Date(val).getFullYear()
   pickerValue.value = null
-  if (y < 1984 || y > currentYear) return
-  if (selectedYears.value.includes(y)) return
-  if (selectedYears.value.length >= 5) {
-    ElMessage.warning('最多选择5个年份')
-    return
-  }
-  selectedYears.value.push(y)
-  selectedYears.value.sort()
+  const result = addYearToSelection(selectedYears.value, val, currentYear)
+  if (result.warning) ElMessage.warning(result.warning)
+  selectedYears.value = result.years
 }
 
 function removeYear(y) {
-  selectedYears.value = selectedYears.value.filter(v => v !== y)
+  selectedYears.value = removeYearFromSelection(selectedYears.value, y)
 }
 
 function quickPick(years) {
-  selectedYears.value = [...years]
+  selectedYears.value = quickPickYears(years)
 }
 
 // ─── Compute ───

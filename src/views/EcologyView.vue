@@ -2,7 +2,7 @@
   <MapLayout :tabs="tabs" default-tab="ecology">
     <template #map><MapViewer ref="mapRef" @map-loaded="onMapLoaded" @feature-click="onFeatureClick" /></template>
     <template #layer-control><LayerControl ref="layerControlRef" @layer-toggle="onLayerToggle" @mode-toggle="onModeToggle" /></template>
-    <template #dashboard><DashboardView /></template>
+    <template #dashboard><DashboardView :data="overviewData" /></template>
     <template #expansion><ExpansionStats :data="expansionData" @district-click="flyToDistrict" /></template>
     <template #ecology><EcologyStats :data="ecologyData" /></template>
     <template #socio><SocioEconomicStats :data="socioData" @district-click="flyToDistrict" /></template>
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import MapLayout from '../components/layout/MapLayout.vue'
 import MapViewer from '../components/map/MapViewer.vue'
 import LayerControl from '../components/map/LayerControl.vue'
@@ -26,14 +26,36 @@ import DashboardView from '../components/panel/DashboardView.vue'
 import HotspotView from '../components/panel/HotspotView.vue'
 import ScatterRadarView from '../components/panel/ScatterRadarView.vue'
 import TownshipRanking from '../components/panel/TownshipRanking.vue'
-import { getExpansionData, getEcologyData, getHotspotData } from '../data/mockAnalysis'
-import { getSocioEconomicData } from '../data/mockSocioEconomic'
+import {
+  fetchEcologyData,
+  fetchExpansionData,
+  fetchHotspotData,
+  fetchOverviewData,
+  fetchSocioEconomicData,
+} from '../services/dataService'
 import { activeYearLayerGroups, activeYearLayers, setActiveYearLayers } from '../stores/layerState'
 import { buildYearLayerTransition, getYearLayerId } from '../utils/timelineLayers'
 
 const mapRef = ref(null), layerControlRef = ref(null), selectedYear = ref(2020)
-const expansionData = ref(getExpansionData()), ecologyData = ref(getEcologyData())
-const socioData = ref(getSocioEconomicData()), hotspotData = ref(getHotspotData())
+const overviewData = ref(), expansionData = ref(), ecologyData = ref()
+const socioData = ref(), hotspotData = ref()
+
+onMounted(loadPanelData)
+
+async function loadPanelData() {
+  const [overview, expansion, ecology, socio, hotspots] = await Promise.all([
+    fetchOverviewData(),
+    fetchExpansionData(),
+    fetchEcologyData(),
+    fetchSocioEconomicData(),
+    fetchHotspotData(),
+  ])
+  overviewData.value = overview
+  expansionData.value = expansion
+  ecologyData.value = ecology
+  socioData.value = socio
+  hotspotData.value = hotspots
+}
 
 const tabs = [
   { key: 'dashboard', label: '总览', color: '#FFD43B' },

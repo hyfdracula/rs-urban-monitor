@@ -42,8 +42,8 @@ export async function fetchHotspotData() {
 }
 
 // ========== 雷达图数据 ==========
-export function fetchRadarData() {
-  return mock.getRadarData()
+export async function fetchRadarData() {
+  return apiFirst(() => api.getEcology({ type: 'radar' }), mock.getRadarData)
 }
 
 // ========== 乡镇排名 ==========
@@ -62,8 +62,8 @@ export async function fetchCityTableData(params) {
 }
 
 // ========== 报告 ==========
-export function fetchReportData() {
-  return mock.getReportData()
+export async function fetchReportData() {
+  return apiFirst(api.getReport, mock.getReportData)
 }
 
 // ========== 文件上传 ==========

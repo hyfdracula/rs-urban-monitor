@@ -27,11 +27,29 @@
 </template>
 
 <script setup>
-import { getOverviewData } from '../../data/mockAnalysis'
+import { computed } from 'vue'
 
 defineEmits(['open-report'])
 
-const d = getOverviewData()
+const EMPTY_OVERVIEW = {
+  totalCities: 0,
+  totalConstruction: 0,
+  avgExpansionRate: 0,
+  avgRSEI: 0,
+  hotspotCount: 0,
+  coldspotCount: 0,
+  improvedArea: 0,
+  degradedArea: 0,
+}
+
+const props = defineProps({
+  data: {
+    type: Object,
+    default: null,
+  },
+})
+
+const d = computed(() => ({ ...EMPTY_OVERVIEW, ...(props.data || {}) }))
 </script>
 
 <style scoped>

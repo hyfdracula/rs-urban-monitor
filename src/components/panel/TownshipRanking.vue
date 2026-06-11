@@ -17,11 +17,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { getTownshipRanking } from '../../data/mockAnalysis'
+import { ref, computed, onMounted } from 'vue'
+import { fetchTownshipRanking } from '../../services/dataService'
 
-const data = ref(getTownshipRanking())
+const data = ref([])
 const sorted = computed(() => [...data.value].sort((a, b) => a.rank - b.rank))
+
+onMounted(async () => {
+  data.value = await fetchTownshipRanking()
+})
 </script>
 
 <style scoped>

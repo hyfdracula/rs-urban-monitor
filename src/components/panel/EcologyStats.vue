@@ -32,13 +32,19 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import * as echarts from 'echarts'
-import { getEcologyData, getRadarData } from '../../data/mockAnalysis'
+import echarts from '../../utils/charts'
+import { fetchRadarData } from '../../services/dataService'
 
 const props = defineProps({
   data: {
     type: Object,
-    default: () => getEcologyData(),
+    default: () => ({
+      rseiMean: 0,
+      rseiChange: 0,
+      gradeDistribution: [],
+      trendData: [],
+      changeDistribution: [],
+    }),
   },
 })
 
@@ -53,6 +59,7 @@ let radarInstance = null
 const loading = ref(true)
 
 const ecologyData = ref(props.data)
+const radarData = ref([])
 
 const rseiColor = computed(() => {
   const v = ecologyData.value.rseiMean
@@ -211,7 +218,7 @@ function updateCharts() {
 
 function updateRadarChart() {
   if (!radarInstance) return
-  const rd = getRadarData()
+  const rd = radarData.value
   radarInstance.setOption({
     backgroundColor: 'transparent',
     tooltip: {},
@@ -243,13 +250,15 @@ function updateRadarChart() {
 
 onMounted(() => {
   initCharts()
+  loadRadarData()
   loading.value = false
   window.addEventListener('resize', handleResize)
-  window.addEventListener('chart-replay', () => { gradeInstance?.clear(); trendInstance?.clear(); changeInstance?.clear(); radarInstance?.clear(); updateCharts() })
+  window.addEventListener('chart-replay', handleChartReplay)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('chart-replay', handleChartReplay)
   gradeInstance?.dispose()
   trendInstance?.dispose()
   changeInstance?.dispose()
@@ -261,6 +270,19 @@ function handleResize() {
   trendInstance?.resize()
   changeInstance?.resize()
   radarInstance?.resize()
+}
+
+function handleChartReplay() {
+  gradeInstance?.clear()
+  trendInstance?.clear()
+  changeInstance?.clear()
+  radarInstance?.clear()
+  updateCharts()
+}
+
+async function loadRadarData() {
+  radarData.value = await fetchRadarData()
+  updateRadarChart()
 }
 </script>
 
