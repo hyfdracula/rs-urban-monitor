@@ -259,6 +259,28 @@ function Start-PowerShellWindow {
     Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoExit", "-ExecutionPolicy", "Bypass", "-EncodedCommand", $encoded) | Out-Null
 }
 
+function Start-LogTailWindow {
+    param(
+        [string]$Name,
+        [string[]]$LogFiles
+    )
+
+    $existingLog = $LogFiles | Where-Object { Test-PathQuiet -Path $_ } | Select-Object -First 1
+    if (-not $existingLog) {
+        return
+    }
+
+    $script = @"
+`$Host.UI.RawUI.WindowTitle = 'RS Urban Monitor $Name (log)'
+Write-Host '$Name is already running. Showing live log tail (Ctrl+C to close this window).'
+Write-Host 'Log file: $(ConvertTo-PSLiteral $existingLog)'
+Write-Host ''
+Get-Content -LiteralPath $(ConvertTo-PSLiteral $existingLog) -Wait -Tail 50
+"@
+
+    Start-PowerShellWindow -Title "$Name Log" -ScriptText $script
+}
+
 function Start-Backend {
     param([pscustomobject]$Python)
 
@@ -405,6 +427,7 @@ if ($NoGeoServer) {
 elseif ($geoServerAvailable) {
     Write-Step "GeoServer already listening on port 8080 ($(Get-PortOwnerSummary -Port 8080)), skip start."
     $geoServerExpected = $true
+    Start-LogTailWindow -Name "GeoServer" -LogFiles @((Join-Path $LogDir "geoserver.log"))
 }
 elseif (-not (Test-PathQuiet -Path (Join-Path $GeoServerBin "startup.bat"))) {
     Write-Step "GeoServer startup.bat not found, skip GeoServer."
@@ -424,6 +447,7 @@ if ($NoBackend) {
 elseif ($backendAvailable) {
     Write-Step "Backend already listening on port 8001 ($(Get-PortOwnerSummary -Port 8001)), skip start."
     $backendExpected = $true
+    Start-LogTailWindow -Name "Backend" -LogFiles @((Join-Path $LogDir "backend.log"), (Join-Path $LogDir "backend.out.log"), (Join-Path $LogDir "backend.err.log"))
 }
 elseif (-not $python) {
     Write-Step "Python 3.10+ not found, trying backend\start.bat fallback."
@@ -442,6 +466,7 @@ if ($NoFrontend) {
 elseif ($frontendAvailable) {
     Write-Step "Frontend already listening on port 5173 ($(Get-PortOwnerSummary -Port 5173)), skip start."
     $frontendExpected = $true
+    Start-LogTailWindow -Name "Frontend" -LogFiles @((Join-Path $LogDir "frontend.log"))
 }
 elseif (-not $npm) {
     Write-Step "npm not found, skip frontend."
