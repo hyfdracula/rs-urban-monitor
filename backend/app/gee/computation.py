@@ -95,6 +95,12 @@ def _build_landsat_composite(ee, boundary, year: int,
         else:
             b[k] = median.select(band_name).multiply(0.0000275).add(-0.2).rename(band_name)
 
+    # 水体掩膜：MNDWI > 0 视为水体，从生态指标中剔除，避免拉低 RSEI
+    mndwi = b["green"].subtract(b["swir1"]).divide(b["green"].add(b["swir1"]))
+    water_mask = mndwi.lte(0)
+    for k in b:
+        b[k] = b[k].updateMask(water_mask)
+
     ndvi = b["nir"].subtract(b["red"]).divide(b["nir"].add(b["red"])).rename("NDVI")
     wet = (
         b["blue"].multiply(wet_coeff["blue"])
