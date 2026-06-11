@@ -24,115 +24,32 @@ from app import tasks
 from app.database import get_db_context
 from app.models import UserBoundary
 from app.config import MAX_CONCURRENT_GEE_TASKS, PUBLIC_ACCOUNT_DAILY_LIMIT
+from app.gee.built import (
+    compute_built_up as _compute_built_up_impl,
+    compute_new_built as _compute_new_built_impl,
+    sum_built_area as _sum_built_area_impl,
+)
+from app.gee.change import (
+    compute_change as _compute_change_impl,
+    compute_change_partial as _compute_change_partial_impl,
+)
+from app.gee.data_sources import (
+    WET_COEFFICIENTS,
+    get_landsat_source as _get_landsat_source,
+    get_ntl_source as _get_ntl_source,
+)
+from app.gee.indices import compute_rsei as _compute_rsei_impl
+from app.gee.socio import (
+    compute_gdp_total as _compute_gdp_total_impl,
+    district_ntl as _district_ntl_impl,
+    district_population as _district_population_impl,
+    get_gdp_image_and_stats as _get_gdp_image_and_stats_impl,
+    get_gdp_per_capita as _get_gdp_per_capita_impl,
+    get_ntl_sum as _get_ntl_sum_impl,
+    get_population as _get_population_impl,
+)
 
 logger = logging.getLogger("ueea2601.gee")
-
-
-# ─── Landsat 数据源映射 ───
-
-LANDSAT_SOURCES: dict[str, dict] = {
-    "LT05": {
-        "collection": "LANDSAT/LT05/C02/T1_L2",
-        "bands": {
-            "blue": "SR_B1", "green": "SR_B2", "red": "SR_B3",
-            "nir": "SR_B4", "swir1": "SR_B5", "swir2": "SR_B7",
-            "thermal": "ST_B6",
-        },
-        "sensor": "TM",
-    },
-    "LE07": {
-        "collection": "LANDSAT/LE07/C02/T1_L2",
-        "bands": {
-            "blue": "SR_B1", "green": "SR_B2", "red": "SR_B3",
-            "nir": "SR_B4", "swir1": "SR_B5", "swir2": "SR_B7",
-            "thermal": "ST_B6",
-        },
-        "sensor": "ETM",
-    },
-    "LC08": {
-        "collection": "LANDSAT/LC08/C02/T1_L2",
-        "bands": {
-            "blue": "SR_B2", "green": "SR_B3", "red": "SR_B4",
-            "nir": "SR_B5", "swir1": "SR_B6", "swir2": "SR_B7",
-            "thermal": "ST_B10",
-        },
-        "sensor": "OLI",
-    },
-    "LC09": {
-        "collection": "LANDSAT/LC09/C02/T1_L2",
-        "bands": {
-            "blue": "SR_B2", "green": "SR_B3", "red": "SR_B4",
-            "nir": "SR_B5", "swir1": "SR_B6", "swir2": "SR_B7",
-            "thermal": "ST_B10",
-        },
-        "sensor": "OLI",
-    },
-}
-
-# ─── WET 缆帽变换系数 ───
-
-WET_COEFFICIENTS: dict[str, dict[str, float]] = {
-    "TM": {
-        "blue": 0.1509, "green": 0.1973, "red": 0.3279,
-        "nir": 0.3406, "swir1": -0.7112, "swir2": -0.4572,
-    },
-    "ETM": {
-        "blue": 0.1509, "green": 0.1973, "red": 0.3279,
-        "nir": 0.3406, "swir1": -0.7112, "swir2": -0.4572,
-    },
-    "OLI": {
-        "blue": 0.3029, "green": 0.2786, "red": 0.4733,
-        "nir": 0.5599, "swir1": 0.5080, "swir2": -0.1872,
-    },
-}
-
-# ─── 建设用地检测阈值 ───
-BUILT_NDBSI_MIN = -0.2       # NDBSI > this → possibly built (从 -0.1 放宽)
-BUILT_NDVI_MAX = 0.5         # NDVI < this → not dense vegetation (从 0.4 放宽)
-BUILT_MNDWI_MAX = 0.3        # MNDWI < this → not water (不变)
-BUILT_DW_PROB_MIN = 0.30     # Dynamic World built probability 阈值
-BUILT_GHSL_COLLECTION = "JRC/GHSL/P2023A/GHS_BUILT_S"
-BUILT_GHSL_YEARS = (1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025, 2030)
-BUILT_GHSL_MIN_SURFACE_M2 = 1.0
-
-
-def _get_landsat_source(year: int) -> tuple[str, dict, str]:
-    """根据年份选择 Landsat 数据源、波段映射和传感器类型。"""
-    if year >= 2021:
-        src = LANDSAT_SOURCES["LC09"]
-    elif year >= 2013:
-        src = LANDSAT_SOURCES["LC08"]
-    elif 1999 <= year <= 2003:
-        src = LANDSAT_SOURCES["LE07"]
-    else:
-        src = LANDSAT_SOURCES["LT05"]
-    return src["collection"], src["bands"], src["sensor"]
-
-
-def _get_ntl_source(year: int) -> tuple[str | None, bool]:
-    """根据年份选择夜灯数据源。返回 (collection_id, available)。
-    使用 ImageCollection + filterDate 代替硬编码 image ID，避免 ID 格式错误。
-    """
-    if 1984 <= year <= 1991:
-        return None, False
-    if 1992 <= year <= 2013:
-        return "NOAA/DMSP-OLS/NIGHTTIME_LIGHTS", True
-    if year >= 2012:
-        return "NOAA/VIIRS/DNB/ANNUAL_V21", True
-    return None, False
-
-
-def _get_gdp_band(year: int) -> str | None:
-    """返回 Kummu et al. (2025) 1km 网格 GDP 数据集的 band name。
-
-    数据源: Kummu et al. (2025) Gridded GDP per capita (PPP),
-            Scientific Data (Nature), 30 arc-sec (~1km), 1990-2022.
-    Asset: projects/sat-io/open-datasets/GRIDDED_HDI_GDP/adm2_gdp_perCapita_1990_2022
-    Band:  PPP_YYYY (GDP per capita, PPP, constant 2021 USD)
-    """
-    if 1990 <= year <= 2022:
-        return f"PPP_{year}"
-    return None
 
 
 class GEEOnlineService:
@@ -311,10 +228,10 @@ class GEEOnlineService:
         # 变化分析（仅 construction 选中且有 ≥2 年时）
         tasks.update_progress(task_id, None, "变化分析...", 73)
         if "construction" in indicators and len(years) >= 2:
-            change_stats = self._compute_change(yearly_results, years)
+            change_stats = _compute_change_impl(yearly_results, years)
         elif len(years) >= 2:
             # 非 construction 模式，仍然计算非建设用地的变化指标
-            change_stats = self._compute_change_partial(yearly_results, years, indicators)
+            change_stats = _compute_change_partial_impl(yearly_results, years, indicators)
         else:
             change_stats = {"single_year": True}
 
@@ -348,7 +265,7 @@ class GEEOnlineService:
             if len(years) >= 2:
                 first_imgs = yearly_images.get(years[0], {})
                 last_imgs = yearly_images.get(years[-1], {})
-                new_built_img = self._compute_new_built(
+                new_built_img = _compute_new_built_impl(
                     first_imgs.get("built"),
                     last_imgs.get("built"),
                     boundary,
@@ -574,7 +491,7 @@ class GEEOnlineService:
                     result["lst_mean"] = round(float(index_stats.get("LST", 0)), 1)
 
                 _progress("计算 RSEI...", 0.35)
-                rsei = self._compute_rsei(composite, boundary)
+                rsei = _compute_rsei_impl(composite, boundary)
                 rsei_stats = rsei.reduceRegion(
                     ee.Reducer.mean().combine(ee.Reducer.minMax(), "", True),
                     boundary, 500, maxPixels=1e12, bestEffort=True, tileScale=4,
@@ -591,7 +508,7 @@ class GEEOnlineService:
             # 建设用地（仅选中时计算）
             if "construction" in indicators:
                 _progress("计算建设用地...", 0.55)
-                built_area, built_binary = self._compute_built_up(composite, band_map, boundary, year)
+                built_area, built_binary = _compute_built_up_impl(composite, band_map, boundary, year)
                 result["built_area_km2"] = built_area
                 images["built"] = built_binary
                 logger.info(f"[{year}] built_area={built_area}")
@@ -605,7 +522,7 @@ class GEEOnlineService:
         if "population" in indicators:
             _progress("提取人口数据...", 0.60)
             if 2000 <= year <= 2020:
-                result["population"] = self._get_population(boundary, year)
+                result["population"] = _get_population_impl(boundary, year)
             logger.info(f"[{year}] population={result['population']}")
         else:
             _progress("跳过人口（未选择）", 0.60)
@@ -613,11 +530,11 @@ class GEEOnlineService:
         # ── GDP（独立，依赖人口作为 fallback）──
         if "gdp" in indicators:
             _progress("提取 GDP 数据...", 0.75)
-            gdp_pc_ppp, gdp_image = self._get_gdp_image_and_stats(boundary, year)
+            gdp_pc_ppp, gdp_image = _get_gdp_image_and_stats_impl(boundary, year)
 
             gdp_total_ppp = None
             if gdp_image is not None and 2000 <= year <= 2020:
-                gdp_total_ppp = self._compute_gdp_total(gdp_image, boundary, year)
+                gdp_total_ppp = _compute_gdp_total_impl(gdp_image, boundary, year)
             if gdp_total_ppp is None and gdp_pc_ppp and result["population"] > 0:
                 gdp_total_ppp = round(gdp_pc_ppp * result["population"], 0)
 
@@ -636,7 +553,7 @@ class GEEOnlineService:
             ntl_collection, ntl_ok = _get_ntl_source(year)
             result["ntl_available"] = ntl_ok
             if ntl_ok and ntl_collection:
-                result["ntl_sum"] = self._get_ntl_sum(boundary, ntl_collection, year)
+                result["ntl_sum"] = _get_ntl_sum_impl(boundary, ntl_collection, year)
         else:
             _progress("跳过夜灯（未选择）", 0.90)
 
@@ -647,65 +564,6 @@ class GEEOnlineService:
         result["_rsei_image"] = rsei_image
         result["_images"] = images
         return result
-
-    def _compute_change_partial(self, yearly_results: dict, years: list[int], indicators: list[str]) -> dict:
-        """计算年际变化指标（部分指标模式）。仅计算已选指标的变化。"""
-        first_year = years[0]
-        last_year = years[-1]
-        first = yearly_results.get(first_year, {})
-        last = yearly_results.get(last_year, {})
-
-        change = {
-            "first_year": first_year,
-            "last_year": last_year,
-        }
-
-        # 建设用地变化（仅 construction）
-        if "construction" in indicators:
-            built_first = first.get("built_area_km2", 0)
-            built_last = last.get("built_area_km2", 0)
-            change["new_built_area"] = round(built_last - built_first, 2)
-            if built_first > 0 and last_year > first_year:
-                cagr = ((built_last / built_first) ** (1 / (last_year - first_year)) - 1) * 100
-                change["expansion_rate"] = round(cagr, 2)
-            else:
-                change["expansion_rate"] = 0.0
-            change["built_first"] = built_first
-            change["built_last"] = built_last
-        else:
-            change["new_built_area"] = 0
-            change["expansion_rate"] = 0.0
-            change["built_first"] = 0
-            change["built_last"] = 0
-
-        # RSEI 变化（仅 rsei）
-        if "rsei" in indicators:
-            rsei_first = first.get("rsei_mean", 0)
-            rsei_last = last.get("rsei_mean", 0)
-            change["rsei_change"] = round(rsei_last - rsei_first, 4)
-        else:
-            change["rsei_change"] = 0
-
-        # 人口变化（仅 population）
-        if "population" in indicators:
-            pop_first = first.get("population", 0)
-            pop_last = last.get("population", 0)
-            change["pop_growth_rate"] = round(((pop_last / max(pop_first, 1)) - 1) * 100, 2) if pop_first > 0 else None
-        else:
-            change["pop_growth_rate"] = None
-
-        # 夜灯变化（仅 nightLight）
-        if "nightLight" in indicators:
-            ntl_first = first.get("ntl_sum")
-            ntl_last = last.get("ntl_sum")
-            ntl_change = None
-            if ntl_first and ntl_last and ntl_first > 0:
-                ntl_change = round(((ntl_last / ntl_first) - 1) * 100, 2)
-            change["ntl_change_rate"] = ntl_change
-        else:
-            change["ntl_change_rate"] = None
-
-        return change
 
     def _compute_year(self, boundary, geojson: dict, year: int,
                       task_id: str = None, year_index: int = 0,
@@ -809,7 +667,7 @@ class GEEOnlineService:
 
         # RSEI
         _progress("计算 RSEI...", 0.35)
-        rsei = self._compute_rsei(composite, boundary)
+        rsei = _compute_rsei_impl(composite, boundary)
         rsei_stats = rsei.reduceRegion(
             ee.Reducer.mean().combine(ee.Reducer.minMax(), "", True),
             boundary,
@@ -825,25 +683,25 @@ class GEEOnlineService:
 
         # 建设用地面积
         _progress("计算建设用地...", 0.55)
-        built_area, built_binary = self._compute_built_up(composite, band_map, boundary, year)
+        built_area, built_binary = _compute_built_up_impl(composite, band_map, boundary, year)
         logger.info(f"[{year}] built_area={built_area}")
 
         # 人口 (WorldPop 2000-2020)
         _progress("提取人口数据...", 0.60)
         population = 0
         if 2000 <= year <= 2020:
-            population = self._get_population(boundary, year)
+            population = _get_population_impl(boundary, year)
         logger.info(f"[{year}] population={population}")
 
         # GDP per capita (Kummu et al. 2025, 1km 网格, 1990-2022)
         _progress("提取 GDP 数据...", 0.75)
-        gdp_pc_ppp, gdp_image = self._get_gdp_image_and_stats(boundary, year)
+        gdp_pc_ppp, gdp_image = _get_gdp_image_and_stats_impl(boundary, year)
 
         # 总 GDP：优先用 GDP_pc × 人口栅格 → sum（考虑空间分布）
         # 回退到 mean(GDP_pc) × total_population（简单近似）
         gdp_total_ppp = None
         if gdp_image is not None and 2000 <= year <= 2020:
-            gdp_total_ppp = self._compute_gdp_total(gdp_image, boundary, year)
+            gdp_total_ppp = _compute_gdp_total_impl(gdp_image, boundary, year)
         if gdp_total_ppp is None and gdp_pc_ppp and population > 0:
             gdp_total_ppp = round(gdp_pc_ppp * population, 0)
 
@@ -859,7 +717,7 @@ class GEEOnlineService:
         ntl_collection, ntl_ok = _get_ntl_source(year)
         ntl_sum = None
         if ntl_ok and ntl_collection:
-            ntl_sum = self._get_ntl_sum(boundary, ntl_collection, year)
+            ntl_sum = _get_ntl_sum_impl(boundary, ntl_collection, year)
 
         _progress("完成", 1.0)
         logger.info(f"[{year}] DONE: ndvi={ndvi_mean}, rsei={rsei_mean}, "
@@ -884,370 +742,6 @@ class GEEOnlineService:
                 "built": built_binary,
                 "gdp": gdp_image,   # Kummu GDP per capita, None if unavailable
             },
-        }
-
-    def _sum_built_area(self, built_binary, boundary, scale: int = 30) -> float:
-        """Sum built_binary pixel area in km².
-
-        built_binary must already be renamed to "built".
-        """
-        import ee
-        pixel_area = ee.Image.pixelArea().divide(1e6)
-        result = built_binary.multiply(pixel_area).reduceRegion(
-            ee.Reducer.sum(), boundary, scale,
-            maxPixels=1e12, bestEffort=True, tileScale=4,
-        ).getInfo()
-        if result:
-            val = result.get("built")
-            if val is not None:
-                return round(float(val), 2)
-        return 0.0
-
-    def _sum_built_surface_area(self, built_surface, boundary, scale: int = 100) -> float:
-        """Sum GHSL built_surface values in km².
-
-        GHSL GHS_BUILT_S stores built-up surface area in m² per 100 m cell.
-        """
-        import ee
-
-        result = built_surface.reduceRegion(
-            ee.Reducer.sum(), boundary, scale,
-            maxPixels=1e12, bestEffort=True, tileScale=4,
-        ).getInfo()
-        if result:
-            val = result.get("built_surface")
-            if val is not None:
-                return round(float(val) / 1e6, 2)
-        return 0.0
-
-    def _get_ghsl_built(self, boundary, year: int):
-        """GHSL built-up surface time series → (area_km2, binary_mask, ghsl_year)."""
-        import ee
-
-        ghsl_year = min(BUILT_GHSL_YEARS, key=lambda item: abs(item - year))
-        image = (
-            ee.ImageCollection(BUILT_GHSL_COLLECTION)
-            .filter(ee.Filter.eq("system:index", str(ghsl_year)))
-            .first()
-            .select("built_surface")
-        )
-        area = self._sum_built_surface_area(image, boundary, scale=100)
-        built_binary = (
-            image.gt(BUILT_GHSL_MIN_SURFACE_M2)
-            .unmask(0)
-            .toByte()
-            .rename("built")
-            .reproject("EPSG:4326", None, 100)
-        )
-        return area, built_binary, ghsl_year
-
-    def _get_dynamic_world_built(self, boundary, year: int):
-        """Dynamic World built probability median ≥ threshold → binary mask.
-
-        Returns ee.Image renamed "built", or None if no data for this year.
-        """
-        import ee
-        dw_col = (
-            ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
-            .filterBounds(boundary)
-            .filterDate(f"{year}-01-01", f"{year}-12-31")
-            .select("built")
-        )
-        count = dw_col.size().getInfo()
-        if count == 0:
-            logger.info(f"Dynamic World: no data for year={year}")
-            return None
-        dw_median = dw_col.median()
-        return dw_median.gte(BUILT_DW_PROB_MIN).unmask(0).toByte().rename("built")
-
-    def _compute_built_up(self, composite, band_map, boundary, year: int) -> tuple[float, Any]:
-        """计算建设用地面积。三源竞争选优：WorldCover / Dynamic World / NDBI。
-
-        所有候选源都计算，按优先级选最佳。
-        如果高优先级结果异常偏低（< 次优先级 30%），降级。
-
-        Returns:
-            (built_area_km2, built_binary_eeImage) 二元组。
-        """
-        import ee
-
-        candidates = []  # [(source_name, area_km2, built_binary_eeImage)]
-
-        # ── Source 1: GHSL built-up surface (100m, 5-year time series) ──
-        try:
-            ghsl_area, ghsl_built, ghsl_year = self._get_ghsl_built(boundary, year)
-            candidates.append(("GHSL", ghsl_area, ghsl_built))
-            logger.info(f"GHSL built source year={ghsl_year} requested={year} area={ghsl_area}km²")
-        except Exception as e:
-            logger.warning(f"GHSL built-up failed for {year}: {e}")
-
-        # ── Source 2: ESA WorldCover (10m, class 50) — 仅 2020 ──
-        if year == 2020:
-            try:
-                wc = ee.Image("ESA/WorldCover/v100/2020")
-                wc_built = wc.eq(50).unmask(0).toByte().rename("built")
-                wc_area = self._sum_built_area(wc_built, boundary, scale=30)
-                candidates.append(("WorldCover", wc_area, wc_built))
-            except Exception as e:
-                logger.warning(f"WorldCover failed for {year}: {e}")
-
-        # ── Source 3: Dynamic World (10m, built probability) — 动态检查可用性 ──
-        try:
-            dw_built = self._get_dynamic_world_built(boundary, year)
-            if dw_built is not None:
-                dw_area = self._sum_built_area(dw_built, boundary, scale=30)
-                candidates.append(("DynamicWorld", dw_area, dw_built))
-        except Exception as e:
-            logger.warning(f"Dynamic World failed for {year}: {e}")
-
-        # ── Source 4: NDBI + NDVI + MNDWI (Landsat 30m) — 始终计算 ──
-        try:
-            ndbsi = composite.select("NDBSI")
-            ndvi_band = composite.select("NDVI")
-            green = composite.select(band_map["green"]).multiply(0.0000275).add(-0.2)
-            swir1 = composite.select(band_map["swir1"]).multiply(0.0000275).add(-0.2)
-            mndwi = green.subtract(swir1).divide(green.add(swir1)).rename("MNDWI")
-            ndbi_built = (
-                ndbsi.gt(BUILT_NDBSI_MIN)
-                .And(ndvi_band.lt(BUILT_NDVI_MAX))
-                .And(mndwi.lt(BUILT_MNDWI_MAX))
-            ).unmask(0).toByte().rename("built")
-            ndbi_area = self._sum_built_area(ndbi_built, boundary, scale=30)
-            candidates.append(("NDBI", ndbi_area, ndbi_built))
-        except Exception as e:
-            logger.warning(f"NDBI built-up failed for {year}: {e}")
-
-        # ── 选最优结果 ──
-        # 优先级: GHSL > WorldCover > DynamicWorld > NDBI
-        # GHSL 是跨年度一致时间序列，不因 NDBI 偏大而降级。
-        priority_order = ["GHSL", "WorldCover", "DynamicWorld", "NDBI"]
-        if not candidates:
-            logger.warning(f"built-up: all sources failed for year={year}")
-            return 0.0, None
-
-        ordered = sorted(candidates, key=lambda item: priority_order.index(item[0]))
-        nonzero = [item for item in ordered if item[1] > 0]
-        best = nonzero[0] if nonzero else ordered[0]
-
-        # 非 GHSL 高优先级数据源面积异常偏低时，向低优先级但更完整的候选降级。
-        if best[0] != "GHSL":
-            for src_name, area, binary in (nonzero[1:] if nonzero else ordered[1:]):
-                if best[1] > 0 and area > 0 and best[1] < area * 0.3:
-                    logger.warning(
-                        f"built-up: {best[0]} area={best[1]} suspiciously low vs "
-                        f"{src_name} area={area}, using {src_name}"
-                    )
-                    best = (src_name, area, binary)
-
-        src_name, area, binary = best
-        logger.info(
-            f"built-up: source={src_name} year={year} area={area}km² "
-            f"(candidates: {[(c[0], c[1]) for c in candidates]})"
-        )
-        return area, binary
-
-    def _get_population(self, boundary, year: int) -> int:
-        """WorldPop 人口估算。"""
-        import ee
-
-        try:
-            pop = (
-                ee.ImageCollection("WorldPop/GP/100m/pop")
-                .filterBounds(boundary)
-                .filter(ee.Filter.eq("year", year))
-                .first()
-            )
-            if pop:
-                pop_result = pop.reduceRegion(
-                    ee.Reducer.sum(), boundary, 100, maxPixels=1e12,
-                    bestEffort=True, tileScale=4,
-                ).getInfo()
-                if pop_result:
-                    vals = list(pop_result.values())
-                    if vals and vals[0] is not None:
-                        return round(float(vals[0]))
-        except Exception as e:
-            logger.warning(f"Population failed for {year}: {e}")
-        return 0
-
-    def _get_gdp_image_and_stats(
-        self, boundary, year: int,
-    ) -> tuple[float | None, Any]:
-        """从 Kummu et al. (2025) 1km 网格数据集提取区域人均 GDP。
-
-        Returns:
-            (gdp_per_capita_mean, gdp_ee_image) 二元组。
-            gdp_ee_image 为 ee.Image (renamed "GDP") 或 None。
-        """
-        import ee
-
-        band_name = _get_gdp_band(year)
-        if not band_name:
-            return None, None
-
-        try:
-            gdp_img = ee.Image(
-                "projects/sat-io/open-datasets/GRIDDED_HDI_GDP/"
-                "adm2_gdp_perCapita_1990_2022"
-            )
-            gdp_band = gdp_img.select(band_name).clip(boundary)
-
-            stats = gdp_band.reduceRegion(
-                ee.Reducer.mean(),
-                boundary,
-                1000,
-                maxPixels=1e12,
-                bestEffort=True,
-                tileScale=4,
-            ).getInfo()
-
-            if stats and stats.get(band_name) is not None:
-                value = float(stats[band_name])
-                if value > 0:
-                    return round(value, 1), gdp_band.rename("GDP")
-        except Exception as e:
-            logger.warning(f"GDP per capita extraction failed for {year}: {e}")
-        return None, None
-
-    def _compute_gdp_total(
-        self,
-        gdp_image,   # ee.Image (GDP per capita, renamed "GDP")
-        boundary,    # ee.Geometry
-        year: int,
-    ) -> float | None:
-        """栅格相乘法计算总 GDP：GDP per capita × 人口栅格 → sum。
-
-        比 mean(GDP_pc) × total_population 更准确，
-        因为它考虑了 GDP 和人口的空间分布相关性。
-        仅在 WorldPop 有数据的年份（2000-2020）可用。
-
-        Returns:
-            总 GDP（PPP 国际美元）或 None。
-        """
-        import ee
-        try:
-            pop = (
-                ee.ImageCollection("WorldPop/GP/100m/pop")
-                .filterBounds(boundary)
-                .filter(ee.Filter.eq("year", year))
-                .first()
-            )
-            gdp_total_img = gdp_image.multiply(pop)
-            result = gdp_total_img.reduceRegion(
-                ee.Reducer.sum(), boundary, 100,
-                maxPixels=1e12, bestEffort=True, tileScale=4,
-            ).getInfo()
-            if result:
-                vals = list(result.values())
-                if vals and vals[0] is not None:
-                    return round(float(vals[0]))
-        except Exception as e:
-            logger.warning(f"GDP total (raster multiply) failed for {year}: {e}")
-        return None
-
-    def _get_gdp_per_capita(self, boundary, year: int) -> float | None:
-        """只返回 GDP 统计值的便捷方法（区县分析等场景）。"""
-        value, _ = self._get_gdp_image_and_stats(boundary, year)
-        return value
-
-    def _get_ntl_sum(self, boundary, ntl_collection: str, year: int) -> float | None:
-        """获取夜灯总亮度。用 ImageCollection + filterDate 取该年份影像。"""
-        import ee
-
-        try:
-            ntl_img = (
-                ee.ImageCollection(ntl_collection)
-                .filterDate(f"{year}-01-01", f"{year}-12-31")
-                .first()
-            )
-            if ntl_img is None:
-                logger.warning(f"NTL: no image in {ntl_collection} for {year}")
-                return None
-            ntl_result = ntl_img.select([0]).reduceRegion(
-                ee.Reducer.sum(), boundary, 1000, maxPixels=1e12,
-                bestEffort=True, tileScale=4,
-            ).getInfo()
-            if ntl_result:
-                vals = list(ntl_result.values())
-                if vals and vals[0] is not None:
-                    return round(float(vals[0]), 2)
-        except Exception as e:
-            logger.warning(f"NTL failed for {ntl_collection} ({year}): {e}")
-        return None
-
-    def _compute_rsei(self, composite, boundary):
-        """简化版 RSEI：NDVI + Wet + (1-NDBSI) + (1-LST) 加权。"""
-        import ee
-
-        def _norm(img, band):
-            s = img.select(band).reduceRegion(
-                ee.Reducer.minMax(), boundary, 500, maxPixels=1e12,
-                bestEffort=True, tileScale=4,
-            )
-            return img.select(band).subtract(ee.Number(s.get(band + "_min"))).divide(
-                ee.Number(s.get(band + "_max")).subtract(ee.Number(s.get(band + "_min")))
-            )
-
-        ndvi_n = _norm(composite, "NDVI").rename("NDVI_n")
-        wet_n = _norm(composite, "WET").rename("WET_n")
-        ndbsi_n = ee.Image(1).subtract(_norm(composite, "NDBSI")).rename("NDBSI_n")
-        lst_n = ee.Image(1).subtract(_norm(composite, "LST")).rename("LST_n")
-
-        rsei = (
-            ndvi_n.multiply(0.4)
-            .add(wet_n.multiply(0.3))
-            .add(ndbsi_n.multiply(0.2))
-            .add(lst_n.multiply(0.1))
-            .rename("RSEI")
-        )
-        return rsei
-
-    def _compute_change(self, yearly_results: dict, years: list[int]) -> dict:
-        """计算年际变化指标。"""
-        first_year = years[0]
-        last_year = years[-1]
-        first = yearly_results.get(first_year, {})
-        last = yearly_results.get(last_year, {})
-
-        # 建设用地变化
-        built_first = first.get("built_area_km2", 0)
-        built_last = last.get("built_area_km2", 0)
-        new_built = round(built_last - built_first, 2)
-
-        # 年均扩张速率（复合增长率）
-        if built_first > 0 and last_year > first_year:
-            cagr = ((built_last / built_first) ** (1 / (last_year - first_year)) - 1) * 100
-            expansion_rate = round(cagr, 2)
-        else:
-            expansion_rate = 0.0
-
-        # RSEI 变化
-        rsei_first = first.get("rsei_mean", 0)
-        rsei_last = last.get("rsei_mean", 0)
-        rsei_change = round(rsei_last - rsei_first, 4)
-
-        # 人口变化
-        pop_first = first.get("population", 0)
-        pop_last = last.get("population", 0)
-        pop_growth = round(((pop_last / max(pop_first, 1)) - 1) * 100, 2) if pop_first > 0 else None
-
-        # 夜灯变化
-        ntl_first = first.get("ntl_sum")
-        ntl_last = last.get("ntl_sum")
-        ntl_change = None
-        if ntl_first and ntl_last and ntl_first > 0:
-            ntl_change = round(((ntl_last / ntl_first) - 1) * 100, 2)
-
-        return {
-            "first_year": first_year,
-            "last_year": last_year,
-            "new_built_area": new_built,
-            "expansion_rate": expansion_rate,
-            "rsei_change": rsei_change,
-            "pop_growth_rate": pop_growth,
-            "ntl_change_rate": ntl_change,
-            "built_first": built_first,
-            "built_last": built_last,
         }
 
     def _compute_district_stats(
@@ -1354,7 +848,7 @@ class GEEOnlineService:
                     if "construction" in indicators and built_image is not None:
                         try:
                             built_district = built_image.clip(analysis_geom)
-                            built_km2 = self._sum_built_area(built_district, analysis_geom, scale=30)
+                            built_km2 = _sum_built_area_impl(built_district, analysis_geom, scale=30)
                         except Exception as e:
                             logger.warning(f"District {name} built clip failed: {e}")
 
@@ -1378,19 +872,19 @@ class GEEOnlineService:
                     # 区县 GDP per capita（仅 gdp 选中时，PPP → 人民币）
                     d_gdp_pc = None
                     if "gdp" in indicators:
-                        d_gdp_pc_ppp = self._get_gdp_per_capita(analysis_geom, last_year)
+                        d_gdp_pc_ppp = _get_gdp_per_capita_impl(analysis_geom, last_year)
                         from app.config import GDP_USD_TO_RMB as _rate2
                         d_gdp_pc = round(d_gdp_pc_ppp * _rate2) if d_gdp_pc_ppp else None
 
                     # 区县人口（仅 population 选中时）
                     d_pop = 0
                     if "population" in indicators:
-                        d_pop = self._district_population(analysis_geom, last_year)
+                        d_pop = _district_population_impl(analysis_geom, last_year)
 
                     # 区县夜灯（仅 nightLight 选中时）
                     d_ntl = 0.0
                     if "nightLight" in indicators:
-                        d_ntl = self._district_ntl(analysis_geom, last_year)
+                        d_ntl = _district_ntl_impl(analysis_geom, last_year)
 
                     districts.append({
                         "name": name,
@@ -1421,50 +915,6 @@ class GEEOnlineService:
             logger.warning(f"District analysis failed: {e}")
 
         return districts
-
-    def _district_population(self, district_geom, year: int) -> int:
-        """WorldPop 人口栅格按区县求和。"""
-        import ee
-        if not (2000 <= year <= 2020):
-            return 0
-        try:
-            wp = ee.ImageCollection("WorldPop/GP/100m/pop")\
-                .filter(ee.Filter.eq("year", year)).first()
-            result = wp.reduceRegion(
-                ee.Reducer.sum(), district_geom, 100,
-                maxPixels=1e12, bestEffort=True, tileScale=4,
-            ).getInfo()
-            if result:
-                vals = list(result.values())
-                if vals and vals[0] is not None:
-                    return round(float(vals[0]))
-        except Exception as e:
-            logger.warning(f"District population failed: {e}")
-        return 0
-
-    def _district_ntl(self, district_geom, year: int) -> float:
-        """夜灯 NTL 按区县求和（GDP 代理指标）。"""
-        import ee
-        ntl_id, ntl_ok = _get_ntl_source(year)
-        if not ntl_ok or not ntl_id:
-            return 0.0
-        try:
-            ntl_img = (
-                ee.ImageCollection(ntl_id)
-                .filterDate(f"{year}-01-01", f"{year}-12-31")
-                .first()
-            )
-            result = ntl_img.select([0]).reduceRegion(
-                ee.Reducer.sum(), district_geom, 500,
-                maxPixels=1e12, bestEffort=True, tileScale=4,
-            ).getInfo()
-            if result:
-                vals = list(result.values())
-                if vals and vals[0] is not None:
-                    return round(float(vals[0]), 1)
-        except Exception as e:
-            logger.warning(f"District NTL failed: {e}")
-        return 0.0
 
     # ──────────────────────────────────────────────
     # 栅格导出方法
@@ -1616,30 +1066,6 @@ class GEEOnlineService:
                     progress_cb()
 
         return exported
-
-    def _compute_new_built(
-        self,
-        first_built,   # ee.Image (0/1), 首年份建设用地
-        last_built,    # ee.Image (0/1), 末年份建设用地
-        boundary,      # ee.Geometry
-    ) -> Any:         # ee.Image (0/1)
-        """计算新增建设用地：末年份是建设用地且首年份不是。
-
-        Returns:
-            ee.Image (0/1 二值)，或 None（输入无效时）。
-        """
-        import ee
-
-        if first_built is None or last_built is None:
-            return None
-
-        try:
-            # new_built = last_built AND (NOT first_built)
-            new_built = last_built.And(first_built.Not()).unmask(0).toByte().rename("built")
-            return new_built.clip(boundary)
-        except Exception as e:
-            logger.warning(f"Compute new_built failed: {e}")
-            return None
 
     def _run_single_year(self, geojson: dict, boundary_id: int, year: int) -> dict:
         """兼容旧接口：单年同步计算。"""

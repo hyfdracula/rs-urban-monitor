@@ -23,3 +23,6 @@ cryptography==48.0.0
 
 # HTTP
 requests==2.34.2
+
+# Tests
+pytest==9.0.2
