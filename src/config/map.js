@@ -15,9 +15,10 @@ export const GEOSERVER_CONFIG = {
 // Study area center — 长三角城市群核心区27市
 export const MAP_CENTER = [119.0, 30.8]
 export const MAP_ZOOM = 7
+// maxBounds：平台支持任意自定义研究区，放宽到中国全境（含南海）
 export const MAP_BOUNDS = [
-  [116.0, 27.5], // SW
-  [123.0, 33.8], // NE
+  [73.0, 3.0], // SW
+  [135.0, 53.5], // NE
 ]
 
 // Time periods for analysis (2000-2020, 5-year intervals)

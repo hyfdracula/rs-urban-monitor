@@ -42,15 +42,20 @@
     </el-alert>
     <div class="chart-section" v-if="report.expansion?.districtRanking?.length">
       <h4 class="sec-title">区县扩张排名</h4>
-      <div :ref="chartRefs.expansion" class="chart-box" />
+      <div
+        :ref="chartRefs.expansion"
+        class="chart-box"
+        :style="{ height: rankHeight + 'px' }"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import MockBadge from '../common/MockBadge.vue'
 
-defineProps({
+const props = defineProps({
   report: { type: Object, default: null },
   fmt: {
     type: Function,
@@ -65,5 +70,11 @@ defineProps({
       expansion: () => {},
     }),
   },
+})
+
+const rankHeight = computed(() => {
+  const n = props.report?.expansion?.districtRanking?.length ?? 0
+  // ~26px per bar (bar + gap + label), min 120, cap 480
+  return Math.min(480, Math.max(120, n * 26 + 40))
 })
 </script>

@@ -58,7 +58,7 @@ export function buildEcologyGradeOption(gradeData) {
   return {
     ...transparent,
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => `${p[0].name}<br/>面积: ${p[0].value} km²` },
-    grid: { left: '3%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
+    grid: { left: '3%', right: '4%', bottom: '16%', top: '14%', containLabel: true },
     xAxis: {
       type: 'category',
       data: gradeData.map(d => d.grade + '\n' + (d.range || '')),
@@ -66,7 +66,7 @@ export function buildEcologyGradeOption(gradeData) {
       axisLabel: { color: '#ccc', fontSize: 10, lineHeight: 14 },
       name: '生态等级',
       nameLocation: 'middle',
-      nameGap: 32,
+      nameGap: 48,
       nameTextStyle: { color: '#888', fontSize: 11 },
     },
     yAxis: {
@@ -116,7 +116,7 @@ export function buildEcologyChangeOption(changeDistribution) {
     series: [{
       type: 'pie',
       radius: ['35%', '65%'],
-      center: ['50%', '50%'],
+      center: ['50%', '53%'],
       avoidLabelOverlap: false,
       itemStyle: { borderRadius: 4, borderColor: '#1a1a1a', borderWidth: 2 },
       label: { show: true, fontSize: 10, color: '#ccc', formatter: '{b}\n{c}km²' },
@@ -180,7 +180,7 @@ export function buildIndustryPieOption(industryStructure) {
     tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
     series: [{
       type: 'pie',
-      radius: ['40%', '70%'],
+      radius: ['28%', '50%'],
       center: ['50%', '50%'],
       itemStyle: { borderRadius: 4, borderColor: '#1a1a1a', borderWidth: 2 },
       label: { show: true, fontSize: 11, color: '#ccc', formatter: '{b}\n{c}%' },
@@ -310,7 +310,7 @@ export function buildReportIndustryOption(structure) {
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
-      center: ['50%', '55%'],
+      center: ['50%', '50%'],
       data: structure.map(d => ({ name: d.name, value: d.value, itemStyle: { color: d.color } })),
       label: { color: '#ccc', fontSize: 11, formatter: '{b}\n{c}%' },
     }],

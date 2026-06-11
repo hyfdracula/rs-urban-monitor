@@ -52,7 +52,7 @@
 
     <div class="chart-section" v-if="report.socio?.industryStructure?.length">
       <h4 class="sec-title">产业结构</h4>
-      <div :ref="chartRefs.industry" class="chart-box" />
+      <div :ref="chartRefs.industry" class="chart-box" style="height:200px" />
     </div>
     <div class="chart-section" v-if="report.socio?.districtPopulation?.length">
       <h4 class="sec-title">区县人口排名 <span class="unit-hint">(人)</span></h4>

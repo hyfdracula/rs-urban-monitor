@@ -39,7 +39,7 @@
 
     <div class="chart-section">
       <h4 class="sec-title">生态等级分布</h4>
-      <div :ref="chartRefs.grade" class="chart-box" />
+      <div :ref="chartRefs.grade" class="chart-box" style="height:240px" />
     </div>
     <div class="chart-section">
       <h4 class="sec-title">RSEI 时序变化</h4>

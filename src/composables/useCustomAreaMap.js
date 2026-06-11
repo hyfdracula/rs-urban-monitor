@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl'
 
 import { buildWmsTileUrlFromUrl } from '../utils/geoserver.js'
 import { nextCustomLayerLoadState } from '../utils/customLayerState.js'
+import { MAP_CENTER, MAP_ZOOM } from '../config/map.js'
 
 export function useCustomAreaMap() {
   const mapInstance = ref(null)
@@ -132,7 +133,7 @@ export function useCustomAreaMap() {
 
     removeBoundaryLayers()
 
-    let targetCamera = { center: [116.4, 39.9], zoom: 7 }
+    let targetCamera = { center: MAP_CENTER, zoom: MAP_ZOOM }
     if (bounds) {
       const camera = mapInstance.value.cameraForBounds(bounds, { padding: 80 })
       if (camera) targetCamera = camera
