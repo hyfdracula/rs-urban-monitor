@@ -30,8 +30,9 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS, LAYER_CONFIG } from '../config/map'
+import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS, LAYER_CONFIG, USE_MAPBOX_STYLE } from '../config/map'
 import { buildWmsTileUrl } from '../utils/geoserver'
+import { getInitialMapStyle, installMapStyleFallback } from '../utils/mapStyle'
 import RangeTimeline from '../components/map/RangeTimeline.vue'
 
 const mapAContainer = ref(null)
@@ -43,10 +44,10 @@ let syncing = false
 const yearRange = ref([2000, 2020])
 
 function initMap(container) {
-  mapboxgl.accessToken = MAPBOX_TOKEN
+  mapboxgl.accessToken = USE_MAPBOX_STYLE ? MAPBOX_TOKEN : ''
   const m = new mapboxgl.Map({
     container,
-    style: 'mapbox://styles/mapbox/dark-v11',
+    style: getInitialMapStyle(MAPBOX_TOKEN, USE_MAPBOX_STYLE),
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
     maxBounds: MAP_BOUNDS,
@@ -115,8 +116,8 @@ onMounted(async () => {
   mapA = initMap(mapAContainer.value)
   mapB = initMap(mapBContainer.value)
 
-  mapA.on('load', () => addYearLayer(mapA, yearRange.value[0]))
-  mapB.on('load', () => addYearLayer(mapB, yearRange.value[1]))
+  installMapStyleFallback(mapA, () => addYearLayer(mapA, yearRange.value[0]))
+  installMapStyleFallback(mapB, () => addYearLayer(mapB, yearRange.value[1]))
 
   mapA.on('move', () => syncMaps(mapA, mapB))
   mapB.on('move', () => syncMaps(mapB, mapA))

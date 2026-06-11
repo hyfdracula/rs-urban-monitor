@@ -50,6 +50,7 @@ GEOSERVER_PASS: str = _config("GEOSERVER_PASS", "geoserver", production_required
 GEOSERVER_WORKSPACE: str = os.environ.get("GEOSERVER_WORKSPACE", "ueea2601")
 GEOSERVER_RETRY_TIMES: int = int(os.environ.get("GEOSERVER_RETRY_TIMES", "3"))
 GEOSERVER_RETRY_DELAY: float = float(os.environ.get("GEOSERVER_RETRY_DELAY", "2.0"))
+GEOSERVER_PROXY_TOKEN: str = os.environ.get("GEOSERVER_PROXY_TOKEN", "")
 
 # ──────────────────────────────────────────────
 # 上传限制

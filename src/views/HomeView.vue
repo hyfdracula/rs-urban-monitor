@@ -7,7 +7,7 @@
     <template #layer-control>
       <LayerControl ref="layerControlRef" @layer-toggle="onLayerToggle" @mode-toggle="onModeToggle" />
     </template>
-    <template #dashboard><DashboardView @open-report="$emit('open-report')" /></template>
+    <template #dashboard><DashboardView :data="overviewData" @open-report="openExportDialog" /></template>
     <template #expansion><ExpansionStats :data="expansionData" @district-click="flyToDistrict" /></template>
     <template #hotspot><HotspotView :data="hotspotData" @district-click="flyToDistrict" /></template>
     <template #ecology><EcologyStats :data="ecologyData" /></template>
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
 import { Switch } from '@element-plus/icons-vue'
 import MapLayout from '../components/layout/MapLayout.vue'
 import MapViewer from '../components/map/MapViewer.vue'
@@ -37,8 +37,13 @@ import HotspotView from '../components/panel/HotspotView.vue'
 import ScatterRadarView from '../components/panel/ScatterRadarView.vue'
 import TownshipRanking from '../components/panel/TownshipRanking.vue'
 import CompareDialog from '../components/dialog/CompareDialog.vue'
-import { getExpansionData, getEcologyData, getHotspotData } from '../data/mockAnalysis'
-import { getSocioEconomicData } from '../data/mockSocioEconomic'
+import {
+  fetchEcologyData,
+  fetchExpansionData,
+  fetchHotspotData,
+  fetchOverviewData,
+  fetchSocioEconomicData,
+} from '../services/dataService'
 import { activeYearLayerGroups, activeYearLayers, setActiveYearLayers } from '../stores/layerState'
 import { buildYearLayerTransition, getYearLayerId } from '../utils/timelineLayers'
 import { TIME_PERIODS } from '../config/map'
@@ -51,11 +56,29 @@ const showCompare = ref(false)
 // Default range: first → last of TIME_PERIODS (never hardcoded)
 const compareDefaultRange = [TIME_PERIODS[0], TIME_PERIODS[TIME_PERIODS.length - 1]]
 
-defineEmits(['open-report'])
-const expansionData = ref(getExpansionData())
-const ecologyData = ref(getEcologyData())
-const socioData = ref(getSocioEconomicData())
-const hotspotData = ref(getHotspotData())
+const openExportDialog = inject('openExportDialog', () => {})
+const overviewData = ref()
+const expansionData = ref()
+const ecologyData = ref()
+const socioData = ref()
+const hotspotData = ref()
+
+onMounted(loadPanelData)
+
+async function loadPanelData() {
+  const [overview, expansion, ecology, socio, hotspots] = await Promise.all([
+    fetchOverviewData(),
+    fetchExpansionData(),
+    fetchEcologyData(),
+    fetchSocioEconomicData(),
+    fetchHotspotData(),
+  ])
+  overviewData.value = overview
+  expansionData.value = expansion
+  ecologyData.value = ecology
+  socioData.value = socio
+  hotspotData.value = hotspots
+}
 
 // Dynamic bottom bar: show range from localStorage or TIME_PERIODS
 function loadCompareRange() {

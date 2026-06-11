@@ -13,13 +13,13 @@ GeoServer REST 代理路由
 from __future__ import annotations
 
 import logging
-import os
+import hmac
 from typing import Any
 
 import requests
 from fastapi import APIRouter, Request, Response, HTTPException
 
-from app.config import GEOSERVER_URL, GEOSERVER_USER, GEOSERVER_PASS
+from app.config import APP_ENV, GEOSERVER_URL, GEOSERVER_USER, GEOSERVER_PASS, GEOSERVER_PROXY_TOKEN
 
 logger = logging.getLogger("ueea2601.routers.geoserver_proxy")
 
@@ -40,8 +40,10 @@ ALLOWED_PATHS = frozenset({
     "/namespaces.json",
 })
 
-# 仅允许本地请求（Vite 代理或 nginx 反向代理都在同一机器上）
+# 仅允许本地请求（Vite 代理或受控 nginx 反向代理都在同一机器上）
 LOCALHOST_IPS = frozenset({"127.0.0.1", "::1", "0:0:0:0:0:0:0:1"})
+PRODUCTION_ENVS = frozenset({"prod", "production"})
+PROXY_TOKEN_HEADER = "x-geoserver-proxy-token"
 
 
 def _check_path(path: str) -> None:
@@ -50,12 +52,37 @@ def _check_path(path: str) -> None:
         raise HTTPException(status_code=403, detail=f"Path not allowed: {path}")
 
 
+def _is_localhost(host: str | None) -> bool:
+    return bool(host) and host in LOCALHOST_IPS
+
+
+def _first_forwarded_host(request: Request) -> str | None:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if not forwarded_for:
+        return None
+    return forwarded_for.split(",", 1)[0].strip()
+
+
+def _has_valid_proxy_token(request: Request) -> bool:
+    token = request.headers.get(PROXY_TOKEN_HEADER, "")
+    return bool(GEOSERVER_PROXY_TOKEN) and hmac.compare_digest(token, GEOSERVER_PROXY_TOKEN)
+
+
 def _check_local(request: Request) -> None:
-    """只接受来自本机的请求，防止外部直接调用代理。"""
+    """只接受可信本机请求，防止反向代理把公网请求伪装成本机。"""
     client_host = request.client.host if request.client else None
-    if client_host and client_host not in LOCALHOST_IPS:
+    forwarded_host = _first_forwarded_host(request)
+
+    if forwarded_host and not _is_localhost(forwarded_host):
+        logger.warning(f"GeoServer proxy denied forwarded client {forwarded_host}")
+        raise HTTPException(status_code=403, detail="Access denied: localhost only")
+
+    if client_host and not _is_localhost(client_host):
         logger.warning(f"GeoServer proxy denied from {client_host}")
         raise HTTPException(status_code=403, detail="Access denied: localhost only")
+
+    if APP_ENV in PRODUCTION_ENVS and not _has_valid_proxy_token(request):
+        raise HTTPException(status_code=403, detail="Access denied: invalid proxy token")
 
 
 @router.api_route(

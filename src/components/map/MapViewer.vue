@@ -1,14 +1,15 @@
 <template>
   <div
-    ref="mapContainer"
     class="map-container"
   >
+    <div ref="mapContainer" class="map-canvas" />
+
     <!-- Loading skeleton (full screen grid) -->
     <div v-if="loading" class="map-skeleton">
       <div class="skeleton-pulse" />
       <div class="skeleton-grid-full">
-        <div v-for="r in 12" :key="r" class="sk-row">
-          <div v-for="c in 8" :key="c" class="sk-cell" :style="{ animationDelay: ((r+c)*0.06) + 's' }" />
+        <div v-for="r in 24" :key="r" class="sk-row">
+          <div v-for="c in 16" :key="c" class="sk-cell" :style="{ animationDelay: ((r+c)*0.06) + 's' }" />
         </div>
       </div>
       <div class="skeleton-label">加载地图数据…</div>
@@ -28,9 +29,10 @@
 import { ref, onMounted, onUnmounted, computed, watch, inject } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS } from '../../config/map'
+import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS, USE_MAPBOX_STYLE } from '../../config/map'
 import { buildWmsTileUrl } from '../../utils/geoserver'
 import { queryFeature } from '../../utils/featureInfo'
+import { getInitialMapStyle, installMapStyleFallback } from '../../utils/mapStyle'
 import FeaturePopup from './FeaturePopup.vue'
 
 const props = defineProps({
@@ -79,13 +81,14 @@ function closePopup() {
 }
 
 onMounted(() => {
-  mapboxgl.accessToken = MAPBOX_TOKEN
+  mapboxgl.accessToken = USE_MAPBOX_STYLE ? MAPBOX_TOKEN : ''
 
   map = new mapboxgl.Map({
     container: mapContainer.value,
-    style: 'mapbox://styles/mapbox/dark-v11',
+    style: getInitialMapStyle(MAPBOX_TOKEN, USE_MAPBOX_STYLE),
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
+    maxBounds: MAP_BOUNDS,
     minZoom: 4,
     maxZoom: 18,
     attributionControl: false,
@@ -94,7 +97,7 @@ onMounted(() => {
   map.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
   map.addControl(new mapboxgl.ScaleControl(), 'bottom-left')
 
-  map.on('load', () => {
+  installMapStyleFallback(map, () => {
     loading.value = false
     emit('map-loaded', map)
   })
@@ -163,6 +166,11 @@ defineExpose({ map, addWmsLayer, removeLayer, setLayerVisibility, setLayerOpacit
   background: #0d0d0d;
 }
 
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
 /* Loading skeleton */
 .map-skeleton {
   position: absolute;
@@ -199,8 +207,8 @@ defineExpose({ map, addWmsLayer, removeLayer, setLayerVisibility, setLayerOpacit
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(12, 1fr);
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(24, 1fr);
   gap: 6px;
   padding: 12px;
 }

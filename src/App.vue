@@ -81,7 +81,7 @@
     </Teleport>
 
     <main class="app-main">
-      <router-view @open-report="showExportDialog = true" />
+      <router-view />
     </main>
 
     <!-- Dialogs -->
@@ -117,6 +117,7 @@ const showGeeConfigDialog = ref(false)
 const drawerOpen = ref(false)
 
 provide('openUploadDialog', () => { showUploadDialog.value = true })
+provide('openExportDialog', () => { showExportDialog.value = true })
 
 const navItems = [
   { path: '/', title: '长三角城市扩张与生态响应可视化平台', icon: 'Location' },
