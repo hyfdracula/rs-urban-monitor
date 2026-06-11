@@ -18,6 +18,29 @@ from app.config import RESULTS_DIR
 
 logger = logging.getLogger("ueea2601.gee.export")
 
+# 边界外哨兵值：unmask(-9999, False) 写入像素，但 EE 不写 GDAL NoData 标签
+NODATA_VALUE = -9999
+
+
+def _clip_with_nodata(img: Any, boundary: Any) -> Any:
+    """裁剪影像，并把导出矩形中边界外像素填成 NoData 哨兵值。"""
+    return img.clip(boundary).unmask(NODATA_VALUE, sameFootprint=False)
+
+
+def _stamp_nodata(file_path: Path, nodata: int) -> None:
+    """给 GeoTIFF 补打 NoData 元数据标签。
+
+    Earth Engine 的 unmask(-9999, False) 只把边界外像素值写成 -9999，不写
+    GDAL NoData 标签。GeoServer 导入时会把 -9999 当成正常像素渲染成方形色块。
+    这里补打标签，让 GeoServer 自动识别哨兵值为透明像素。
+    """
+    import rasterio
+    try:
+        with rasterio.open(file_path, "r+") as ds:
+            ds.nodata = nodata
+    except Exception as e:
+        logger.warning(f"Stamp nodata failed for {file_path}: {e}")
+
 
 # 低分辨率数据源最低导出分辨率
 LAYER_MIN_SCALES: dict[str, int] = {
@@ -105,8 +128,8 @@ def export_rasters(
         layer_min = LAYER_MIN_SCALES.get(layer_key, scale)
         effective_opt = max(opt_scale, layer_min)
 
-        # clip + unmask(-9999)
-        img_clipped = img.clip(boundary).unmask(-9999)
+        # clip + unmask(-9999, False): 显式填充导出矩形中边界外的像素。
+        img_clipped = _clip_with_nodata(img, boundary)
 
         # 尝试序列：effective_opt → 2x → 4x → 1km → 2km
         scales_to_try = list(dict.fromkeys([
@@ -127,6 +150,7 @@ def export_rasters(
                 if resp.status_code == 200:
                     with open(file_path, "wb") as f:
                         f.write(resp.content)
+                    _stamp_nodata(file_path, NODATA_VALUE)
                     exported[layer_name] = str(file_path)
                     logger.info(f"Exported: {file_path} ({len(resp.content)} bytes, {try_scale}m)")
                     if raster_idx is not None:
@@ -151,7 +175,8 @@ def export_rasters(
                     break
 
         # 失败也推进进度，避免卡住
-        if layer_key not in exported:
+        # 注意：exported 的 key 是 layer_name（如 rsei_2020），不是 layer_key（如 rsei）
+        if layer_name not in exported:
             if raster_idx is not None:
                 raster_idx[0] += 1
             if progress_cb:

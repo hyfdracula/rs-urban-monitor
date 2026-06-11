@@ -139,7 +139,7 @@ class GeoServerService:
                 "put",
                 f"{self.base_url}/workspaces/{GEOSERVER_WORKSPACE}/coveragestores/{store_name}/coverages/{layer_name}.json",
                 json={"coverage": {
-                    "dimensions": {"coverageDimension": [{"name": "GreyBand", "nullValues": [-9999]}]}
+                    "dimensions": {"coverageDimension": [{"name": "GreyBand", "nullValues": {"double": [-9999.0]}}]}
                 }}, headers=self.headers,
             )
         except Exception as e:
