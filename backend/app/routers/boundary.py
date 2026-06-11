@@ -223,7 +223,7 @@ async def recompute_boundary(
         user_key = None
 
     # 5. 创建新任务 + 新 UserBoundary 记录
-    task_id = tasks.new_task(source.filename)
+    task_id = tasks_module.new_task(source.filename)
     new_name = body.name.strip() if body.name else f"[重算] {source.name}"
 
     boundary = UserBoundary(

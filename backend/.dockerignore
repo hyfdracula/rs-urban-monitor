@@ -1,0 +1,23 @@
+# backend build context 忽略项
+
+# Python 缓存
+*.pyc
+__pycache__
+*.pyo
+.pytest_cache
+
+# 环境变量（含密钥）
+.env
+.env.*
+
+# 临时/脚本
+*.bat
+*.ps1
+logs/
+
+# Claude / 工具
+.claude
+
+# Docker 自身（避免递归）
+Dockerfile
+.dockerignore

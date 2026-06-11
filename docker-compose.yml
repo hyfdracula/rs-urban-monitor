@@ -1,0 +1,89 @@
+# RS Urban Monitor — Docker Compose 一键部署
+#
+# 使用：
+#   首次：docker compose up -d --build
+#   后续：docker compose up -d
+#   查看日志：docker compose logs -f backend
+#   停止：docker compose down
+#   清数据：docker compose down -v
+#
+# 访问：
+#   前端：      http://localhost
+#   后端 API：  http://localhost/api/system/status
+#   GeoServer： http://localhost/geoserver/web
+#
+# 自定义密码：复制 .env.example 为 .env 并修改
+
+services:
+  # ===================== PostGIS 数据库 =====================
+  db:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ueea2601}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # 不暴露端口，仅 Docker 内网可达
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ueea2601}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ===================== GeoServer（地图服务） =====================
+  geoserver:
+    image: kartoza/geoserver:2.25.0
+    # 不暴露 8080 → 已由 nginx 反代 /geoserver
+    # 调试时可用：docker compose exec geoserver curl http://localhost:8080/geoserver/web
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:-geoserver}
+      POSTGRES_ENDPOINT: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-ueea2601}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASS: ${POSTGRES_PASSWORD:-postgres}
+    restart: unless-stopped
+
+  # ===================== FastAPI 后端 =====================
+  backend:
+    build: ./backend
+    # 不暴露 8001 → 已由 nginx 反代 /api
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-ueea2601}
+      GEOSERVER_URL: http://geoserver:8080/geoserver
+      CORS_ORIGINS: "http://localhost,http://127.0.0.1"
+      # Docker 内网走 IP 白名单（172.x / 192.168.x），不走 token
+      APP_ENV: docker
+      GEOSERVER_PROXY_TOKEN: ""
+    depends_on:
+      db:
+        condition: service_healthy
+      geoserver:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/api/system/status').read()\" > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ===================== 前端（nginx 托管 + 反代） =====================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "80:8080"   # 宿主 80 → 容器 8080（nginx-unprivileged 监听 8080）
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:

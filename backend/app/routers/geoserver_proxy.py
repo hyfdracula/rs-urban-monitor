@@ -42,6 +42,8 @@ ALLOWED_PATHS = frozenset({
 
 # 仅允许本地请求（Vite 代理或受控 nginx 反向代理都在同一机器上）
 LOCALHOST_IPS = frozenset({"127.0.0.1", "::1", "0:0:0:0:0:0:0:1"})
+# Docker 容器互访的内网网段（nginx 反代容器 IP 落在 172.x / 192.168.x）
+TRUSTED_NETWORK_PREFIXES = ("172.", "192.168.")
 PRODUCTION_ENVS = frozenset({"prod", "production"})
 PROXY_TOKEN_HEADER = "x-geoserver-proxy-token"
 
@@ -52,8 +54,13 @@ def _check_path(path: str) -> None:
         raise HTTPException(status_code=403, detail=f"Path not allowed: {path}")
 
 
-def _is_localhost(host: str | None) -> bool:
-    return bool(host) and host in LOCALHOST_IPS
+def _is_trusted_host(host: str | None) -> bool:
+    """本机或 Docker 内网视为可信（nginx 容器 IP 在 172.x 段，公网 IP 仍被拒）。"""
+    if not host:
+        return False
+    if host in LOCALHOST_IPS:
+        return True
+    return any(host.startswith(p) for p in TRUSTED_NETWORK_PREFIXES)
 
 
 def _first_forwarded_host(request: Request) -> str | None:
@@ -73,11 +80,11 @@ def _check_local(request: Request) -> None:
     client_host = request.client.host if request.client else None
     forwarded_host = _first_forwarded_host(request)
 
-    if forwarded_host and not _is_localhost(forwarded_host):
+    if forwarded_host and not _is_trusted_host(forwarded_host):
         logger.warning(f"GeoServer proxy denied forwarded client {forwarded_host}")
         raise HTTPException(status_code=403, detail="Access denied: localhost only")
 
-    if client_host and not _is_localhost(client_host):
+    if client_host and not _is_trusted_host(client_host):
         logger.warning(f"GeoServer proxy denied from {client_host}")
         raise HTTPException(status_code=403, detail="Access denied: localhost only")
 

@@ -1,0 +1,34 @@
+# 根目录 build context（frontend 镜像）忽略项
+
+# 依赖与构建产物（镜像内重新构建）
+node_modules
+dist
+
+# 版本控制
+.git
+.gitignore
+
+# GeoServer 本地二进制（超大，容器内用 kartoza 镜像代替）
+geoserver-2.25.5-bin
+
+# Python（属于 backend，不进前端镜像）
+backend
+*.pyc
+__pycache__
+
+# 临时/脚本
+*.bat
+*.ps1
+logs/
+.chrom*
+
+# IDE
+.vscode
+.idea
+
+# 环境变量（含密钥）
+.env
+.env.*
+
+# Claude / 工具
+.claude
