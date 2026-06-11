@@ -13,9 +13,10 @@ from __future__ import annotations
 
 import json
 import logging
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.orm import Session
 
+from app.auth import get_user_token
 from app.database import get_db, SessionLocal
 from app.models import UserBoundary
 from app.schemas import AutoComputeStatusResponse, GEECodeResponse, GEETaskDetail, AnalysisReportResponse, BoundaryListResponse, BoundaryListItem, ComputeProgressResponse, CancelResponse
@@ -34,11 +35,16 @@ router = APIRouter(prefix="/api/compute", tags=["compute"])
 
 
 @router.get("/tasks", response_model=BoundaryListResponse)
-async def list_tasks() -> BoundaryListResponse:
+async def list_tasks(
+    authorization: str | None = Header(None),
+) -> BoundaryListResponse:
     """返回所有任务列表。"""
+    user_token = get_user_token(authorization)
+    db: Session = SessionLocal()
     try:
-        db: Session = SessionLocal()
-        rows = db.query(UserBoundary).order_by(UserBoundary.created_at.desc()).all()
+        rows = db.query(UserBoundary).filter(
+            UserBoundary.user_token == user_token
+        ).order_by(UserBoundary.created_at.desc()).all()
         items = [
             BoundaryListItem(
                 id=r.id,
@@ -55,11 +61,12 @@ async def list_tasks() -> BoundaryListResponse:
             )
             for r in rows
         ]
-        db.close()
         return BoundaryListResponse(total=len(items), items=items)
     except Exception:
         logger.exception("Failed to list tasks from database")
         raise HTTPException(500, detail="任务列表查询失败，请检查数据库连接")
+    finally:
+        db.close()
 
 
 # ──────────────────────────────────────────────
@@ -72,15 +79,17 @@ _alias_router = APIRouter(tags=["tasks"])
 @_alias_router.get("/api/tasks/{task_id}", response_model=AutoComputeStatusResponse)
 async def tasks_status_alias(
     task_id: str,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> AutoComputeStatusResponse:
     """别名：/api/tasks/{taskId} 等价于 /api/compute/{task_id}/status。"""
-    return await get_auto_status(task_id, db)
+    return await get_auto_status(task_id, authorization, db)
 
 
 @router.get("/{task_id}/status", response_model=AutoComputeStatusResponse)
 async def get_auto_status(
     task_id: str,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> AutoComputeStatusResponse:
     """轮询自动模式任务状态。
@@ -91,7 +100,11 @@ async def get_auto_status(
     if task is None:
         raise HTTPException(404, detail=f"任务 '{task_id}' 不存在")
 
-    boundary = db.query(UserBoundary).filter(UserBoundary.task_id == task_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.task_id == task_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"任务 '{task_id}' 对应的边界不存在")
 
@@ -198,6 +211,7 @@ async def get_auto_status(
 @router.get("/{task_id}/report", response_model=AnalysisReportResponse)
 async def get_report(
     task_id: str,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> AnalysisReportResponse:
     """获取分析报告数据。
@@ -207,7 +221,11 @@ async def get_report(
     - 图表区（ECharts 配置）
     - 报告区（指标卡片 + 数据表格）
     """
-    boundary = db.query(UserBoundary).filter(UserBoundary.task_id == task_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.task_id == task_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"任务 '{task_id}' 不存在")
 
@@ -229,7 +247,10 @@ async def get_report(
 
 
 @router.get("/{task_id}/code", response_model=GEECodeResponse)
-async def get_gee_code(task_id: str) -> GEECodeResponse:
+async def get_gee_code(
+    task_id: str,
+    authorization: str | None = Header(None),
+) -> GEECodeResponse:
     """获取 GEE JavaScript 代码（手动模式）。"""
     task = tasks.get_task(task_id)
     if task is None:
@@ -237,7 +258,11 @@ async def get_gee_code(task_id: str) -> GEECodeResponse:
 
     db = SessionLocal()
     try:
-        boundary = db.query(UserBoundary).filter(UserBoundary.task_id == task_id).first()
+        user_token = get_user_token(authorization)
+        boundary = db.query(UserBoundary).filter(
+            UserBoundary.task_id == task_id,
+            UserBoundary.user_token == user_token,
+        ).first()
         if boundary is None:
             raise HTTPException(404, detail=f"任务 '{task_id}' 对应的边界不存在")
 
@@ -265,10 +290,15 @@ async def get_gee_code(task_id: str) -> GEECodeResponse:
 @router.get("/{task_id}/progress", response_model=ComputeProgressResponse)
 async def get_progress(
     task_id: str,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> ComputeProgressResponse:
     """查询后台计算进度。前端轮询此接口获取实时进度。"""
-    boundary = db.query(UserBoundary).filter(UserBoundary.task_id == task_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.task_id == task_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"任务 '{task_id}' 不存在")
 
@@ -285,8 +315,20 @@ async def get_progress(
 
 
 @router.post("/{task_id}/cancel", response_model=CancelResponse)
-async def cancel_compute(task_id: str) -> CancelResponse:
+async def cancel_compute(
+    task_id: str,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+) -> CancelResponse:
     """取消正在进行的计算任务。"""
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.task_id == task_id,
+        UserBoundary.user_token == user_token,
+    ).first()
+    if boundary is None:
+        raise HTTPException(404, detail=f"任务 '{task_id}' 不存在")
+
     ok = tasks.cancel_task(task_id)
     if ok:
         return CancelResponse(success=True, message="已发送取消请求")

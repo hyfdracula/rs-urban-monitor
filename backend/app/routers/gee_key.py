@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Header
 
+from app.auth import get_user_token
 from app.gee_key_service import gee_key_service
 from pydantic import BaseModel
 
@@ -45,17 +46,6 @@ class DeleteKeyResponse(BaseModel):
     message: str
 
 
-def _get_user_token(authorization: str | None) -> str:
-    """从请求头获取用户 token。
-
-    简单实现：直接用 Authorization header 的值。
-    未登录时使用默认匿名用户，方便单机使用。
-    """
-    if not authorization:
-        return "anonymous"
-    return authorization.replace("Bearer ", "").strip() or "anonymous"
-
-
 @router.post("/save", response_model=SaveKeyResponse)
 async def save_key(
     req: SaveKeyRequest,
@@ -66,7 +56,7 @@ async def save_key(
     前端传 Service Account 邮箱 + 密钥 JSON 内容。
     密钥会加密存储，验证前不会使用。
     """
-    user_token = _get_user_token(authorization)
+    user_token = get_user_token(authorization)
     result = gee_key_service.save_key(user_token, req.service_account, req.key_json)
     return SaveKeyResponse(**result)
 
@@ -80,7 +70,7 @@ async def verify_key(
     后端尝试用该密钥初始化 GEE，成功则标记为 valid。
     验证可能需要几秒钟。
     """
-    user_token = _get_user_token(authorization)
+    user_token = get_user_token(authorization)
     result = gee_key_service.verify_key(user_token)
     return VerifyKeyResponse(**result)
 
@@ -90,7 +80,7 @@ async def get_key_status(
     authorization: str | None = Header(None),
 ) -> KeyStatusResponse:
     """查询用户 GEE 密钥状态。"""
-    user_token = _get_user_token(authorization)
+    user_token = get_user_token(authorization)
     result = gee_key_service.get_status(user_token)
     return KeyStatusResponse(**result)
 
@@ -100,6 +90,6 @@ async def delete_key(
     authorization: str | None = Header(None),
 ) -> DeleteKeyResponse:
     """删除用户 GEE 密钥。"""
-    user_token = _get_user_token(authorization)
+    user_token = get_user_token(authorization)
     result = gee_key_service.delete_key(user_token)
     return DeleteKeyResponse(**result)

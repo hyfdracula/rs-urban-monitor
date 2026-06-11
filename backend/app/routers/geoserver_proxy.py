@@ -33,13 +33,20 @@ ALLOWED_PREFIXES = (
     "/namespaces/",
 )
 
+ALLOWED_PATHS = frozenset({
+    "/workspaces.json",
+    "/layers.json",
+    "/styles.json",
+    "/namespaces.json",
+})
+
 # 仅允许本地请求（Vite 代理或 nginx 反向代理都在同一机器上）
 LOCALHOST_IPS = frozenset({"127.0.0.1", "::1", "0:0:0:0:0:0:0:1"})
 
 
 def _check_path(path: str) -> None:
     """只允许白名单路径，防止 SSRF。"""
-    if not any(path.startswith(p) for p in ALLOWED_PREFIXES):
+    if path not in ALLOWED_PATHS and not any(path.startswith(p) for p in ALLOWED_PREFIXES):
         raise HTTPException(status_code=403, detail=f"Path not allowed: {path}")
 
 

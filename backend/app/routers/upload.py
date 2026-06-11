@@ -18,11 +18,11 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import UserBoundary
+from app.auth import get_user_token
 from app.schemas import BoundaryUploadResponse, ComputeMode
 from app.validation import validate_and_parse
 from app.gee_service import gee_online
 from app.gee_key_service import gee_key_service
-from app.geoserver_service import geoserver
 from app import tasks
 from app.config import UPLOAD_MAX_SIZE_BYTES
 
@@ -97,8 +97,15 @@ async def upload_boundary(
     if compute_mode == ComputeMode.online and not tasks.can_submit_gee_task():
         raise HTTPException(429, detail="当前排队任务过多，请稍后重试")
 
+    user_token = get_user_token(authorization)
+    user_key = None
+    if compute_mode == ComputeMode.online:
+        user_key = gee_key_service.get_valid_key(user_token)
+        if user_key is None:
+            raise HTTPException(400, detail="请先在「GEE配置」页面上传并验证您的 GEE 密钥")
+
     boundary = UserBoundary(
-        name=name, area_km2=area_km2, filename=filename, file_type=file_type,
+        name=name, user_token=user_token, area_km2=area_km2, filename=filename, file_type=file_type,
         compute_mode=compute_mode.value, task_id=task_id,
         geom=geom_wkt, geojson_text=geojson_str, status="processing",
         years=json.dumps(year_list),
@@ -110,15 +117,6 @@ async def upload_boundary(
 
     # 自动模式
     if compute_mode == ComputeMode.online:
-        # 方案A: 优先用用户自己的 GEE 密钥
-        user_token = _extract_token(authorization) or "anonymous"
-        user_key = gee_key_service.get_valid_key(user_token)
-
-        if user_key is None:
-            boundary.status = "failed"
-            db.commit()
-            raise HTTPException(400, detail="请先在「GEE配置」页面上传并验证您的 GEE 密钥")
-
         # 解析 indicators 配置
         try:
             config_dict = json.loads(config) if config else {}
@@ -185,12 +183,6 @@ async def upload_boundary(
         compute_mode=compute_mode,
         url=f"/analysis/{task_id}",
     )
-
-
-def _extract_token(authorization: str | None) -> str | None:
-    if not authorization:
-        return None
-    return authorization.replace("Bearer ", "").strip() or None
 
 
 # ──────────────────────────────────────────────

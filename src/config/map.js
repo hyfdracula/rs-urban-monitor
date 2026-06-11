@@ -1,5 +1,5 @@
 // GeoServer and Mapbox configuration
-export const MAPBOX_TOKEN = (import.meta.env?.VITE_MAPBOX_TOKEN) || 'pk.eyJ1IjoiaHlmZHJhY3VsYSIsImEiOiJjbXEwaW1md2cwc2V5MnFwd2o3b2R3czB3In0.35FykW5Oi8riNHyvxAgqqQ'
+export const MAPBOX_TOKEN = import.meta.env?.VITE_MAPBOX_TOKEN || ''
 
 // Vite proxy /geoserver → 127.0.0.1:8080 — 支持 ngrok/本地/LAN
 const APP_ORIGIN = typeof window === 'undefined' ? 'http://127.0.0.1:5173' : window.location.origin

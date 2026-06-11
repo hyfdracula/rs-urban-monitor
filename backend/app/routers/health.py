@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Header
 
+from app.auth import ANONYMOUS_USER_TOKEN, get_user_token
 from app.geoserver_service import geoserver
 from app.gee_service import gee_online
 from app.gee_key_service import gee_key_service
@@ -59,12 +60,10 @@ async def get_quota(authorization: str | None = Header(None)) -> dict:
     如果用户配置了自己的密钥，返回用户额度信息。
     否则返回公共账号额度。
     """
-    user_token = None
-    if authorization:
-        user_token = authorization.replace("Bearer ", "").strip() or None
+    user_token = get_user_token(authorization)
 
     # 用户自有密钥的配额
-    if user_token:
+    if user_token != ANONYMOUS_USER_TOKEN:
         user_quota = gee_online.get_user_quota(user_token)
         if user_quota:
             return {

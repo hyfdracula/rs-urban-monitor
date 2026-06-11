@@ -5,7 +5,7 @@ import {
   getEcologyData,
   getExpansionData,
   getReportData,
-} from '../src/data/mockAnalysis.js'
+} from '../../src/data/mockAnalysis.js'
 
 test('mock analysis data provides shared expansion, ecology, and report datasets', () => {
   const expansion = getExpansionData()

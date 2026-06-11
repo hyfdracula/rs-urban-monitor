@@ -7,6 +7,7 @@ P0: 连接池 + 统一 session 管理。
 from __future__ import annotations
 
 import logging
+import json
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
@@ -62,6 +63,7 @@ def init_db() -> None:
 
     # 自动迁移：补齐旧表缺失的列（create_all 不会加列）
     _migrate_user_boundaries(engine, _log)
+    _mark_stale_processing_tasks(engine, _log)
 
 
 def _migrate_user_boundaries(eng, _log: logging.Logger) -> None:
@@ -69,6 +71,7 @@ def _migrate_user_boundaries(eng, _log: logging.Logger) -> None:
     _ALTERS = [
         "ALTER TABLE user_boundaries ADD COLUMN IF NOT EXISTS area_km2 DOUBLE PRECISION",
         "ALTER TABLE user_boundaries ADD COLUMN IF NOT EXISTS years TEXT",
+        "ALTER TABLE user_boundaries ADD COLUMN IF NOT EXISTS user_token VARCHAR(255) NOT NULL DEFAULT 'anonymous'",
         "ALTER TABLE user_boundaries ADD COLUMN IF NOT EXISTS progress_info TEXT",
         "ALTER TABLE user_boundaries ADD COLUMN IF NOT EXISTS cancelled BOOLEAN DEFAULT FALSE",
     ]
@@ -80,3 +83,31 @@ def _migrate_user_boundaries(eng, _log: logging.Logger) -> None:
         _log.info("Migration OK: user_boundaries columns up-to-date")
     except Exception as e:
         _log.warning(f"Migration skipped (may not be PostgreSQL): {e}")
+
+
+def _mark_stale_processing_tasks(eng, _log: logging.Logger) -> None:
+    """Fail online tasks that were left processing by a previous crashed process."""
+    progress = json.dumps(
+        {"year": None, "step": "服务已重启，任务已中断，请重新提交", "percent": 0},
+        ensure_ascii=False,
+    )
+    try:
+        with eng.connect() as conn:
+            result = conn.execute(
+                __import__("sqlalchemy").text(
+                    """
+                    UPDATE user_boundaries
+                    SET status = 'failed',
+                        progress_info = :progress,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE status = 'processing'
+                      AND compute_mode = 'online'
+                    """
+                ),
+                {"progress": progress},
+            )
+            conn.commit()
+        if result.rowcount:
+            _log.warning("Marked %s stale online task(s) as failed", result.rowcount)
+    except Exception as e:
+        _log.warning(f"Stale task cleanup skipped: {e}")

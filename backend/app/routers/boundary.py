@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.auth import get_user_token
 from app.database import get_db
 from app.models import UserBoundary
 from app.schemas import (
@@ -38,9 +39,13 @@ router = APIRouter(prefix="/api/boundary", tags=["boundary"])
 
 @router.get("/list", response_model=BoundaryListResponse)
 async def list_boundaries(
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> BoundaryListResponse:
-    boundaries = db.query(UserBoundary).order_by(UserBoundary.created_at.desc()).all()
+    user_token = get_user_token(authorization)
+    boundaries = db.query(UserBoundary).filter(
+        UserBoundary.user_token == user_token
+    ).order_by(UserBoundary.created_at.desc()).all()
 
     items = [
         BoundaryListItem(
@@ -62,9 +67,14 @@ async def list_boundaries(
 @router.get("/{boundary_id}", response_model=BoundaryGeometryResponse)
 async def get_boundary(
     boundary_id: int,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> BoundaryGeometryResponse:
-    boundary = db.query(UserBoundary).filter(UserBoundary.id == boundary_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.id == boundary_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"边界 {boundary_id} 不存在")
 
@@ -101,10 +111,15 @@ async def get_boundary(
 async def rename_boundary(
     boundary_id: int,
     body: RenameRequest,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> dict:
     """修改边界名称。"""
-    boundary = db.query(UserBoundary).filter(UserBoundary.id == boundary_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.id == boundary_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"边界 {boundary_id} 不存在")
 
@@ -122,10 +137,15 @@ async def rename_boundary(
 @router.delete("/{boundary_id}")
 async def delete_boundary(
     boundary_id: int,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> dict:
     """删除指定边界记录。"""
-    boundary = db.query(UserBoundary).filter(UserBoundary.id == boundary_id).first()
+    user_token = get_user_token(authorization)
+    boundary = db.query(UserBoundary).filter(
+        UserBoundary.id == boundary_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if boundary is None:
         raise HTTPException(404, detail=f"边界 {boundary_id} 不存在")
 
@@ -152,7 +172,11 @@ async def recompute_boundary(
     创建全新的 UserBoundary 记录（克隆几何），旧结果保留。
     """
     # 1. 查源边界
-    source = db.query(UserBoundary).filter(UserBoundary.id == boundary_id).first()
+    user_token = get_user_token(authorization)
+    source = db.query(UserBoundary).filter(
+        UserBoundary.id == boundary_id,
+        UserBoundary.user_token == user_token,
+    ).first()
     if source is None:
         raise HTTPException(404, detail=f"边界 {boundary_id} 不存在")
     if not source.geojson_text:
@@ -191,7 +215,6 @@ async def recompute_boundary(
         if not tasks_module.can_submit_gee_task():
             raise HTTPException(429, detail="当前排队任务过多，请稍后重试")
 
-        user_token = _extract_token(authorization) or "anonymous"
         user_key = gee_key_service.get_valid_key(user_token)
 
         if user_key is None:
@@ -205,6 +228,7 @@ async def recompute_boundary(
 
     boundary = UserBoundary(
         name=new_name,
+        user_token=user_token,
         area_km2=source.area_km2,
         filename=source.filename,
         file_type=source.file_type,
@@ -272,8 +296,3 @@ async def recompute_boundary(
         url=f"/analysis/{task_id}",
     )
 
-
-def _extract_token(authorization: str | None) -> str | None:
-    if not authorization:
-        return None
-    return authorization.replace("Bearer ", "").strip() or None

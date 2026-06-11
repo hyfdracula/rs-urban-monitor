@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { nextCustomLayerLoadState } from '../src/utils/customLayerState.js'
+import { nextCustomLayerLoadState } from '../../src/utils/customLayerState.js'
 
 test('keeps custom layer options when map is not ready yet', () => {
   const layers = [

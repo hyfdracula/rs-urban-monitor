@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { buildWmsTileUrlFromUrl } from '../src/utils/geoserver.js'
+import { buildWmsTileUrlFromUrl } from '../../src/utils/geoserver.js'
 
 test('normalizes backend WMS urls for Mapbox raster tiles', () => {
   const tileUrl = buildWmsTileUrlFromUrl(

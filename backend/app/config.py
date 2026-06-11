@@ -9,12 +9,27 @@ from __future__ import annotations
 import os
 
 
+APP_ENV: str = os.environ.get("APP_ENV", "development").lower()
+_PRODUCTION_ENVS = {"prod", "production"}
+
+
+def _config(name: str, default: str, *, production_required: bool = False) -> str:
+    value = os.environ.get(name, default)
+    if production_required and APP_ENV in _PRODUCTION_ENVS and value == default:
+        raise RuntimeError(
+            f"{name} must be set explicitly when APP_ENV={APP_ENV}; "
+            "refusing to start with the development default."
+        )
+    return value
+
+
 # ──────────────────────────────────────────────
 # 数据库
 # ──────────────────────────────────────────────
-DATABASE_URL: str = os.environ.get(
+DATABASE_URL: str = _config(
     "DATABASE_URL",
     "postgresql+psycopg2://postgres:postgres@localhost:5432/ueea2601",
+    production_required=True,
 )
 DB_POOL_SIZE: int = int(os.environ.get("DB_POOL_SIZE", "5"))
 DB_MAX_OVERFLOW: int = int(os.environ.get("DB_MAX_OVERFLOW", "10"))
@@ -30,8 +45,8 @@ GCS_BUCKET: str = os.environ.get("GCS_BUCKET", "ueea2601-results")
 # GeoServer
 # ──────────────────────────────────────────────
 GEOSERVER_URL: str = os.environ.get("GEOSERVER_URL", "http://localhost:8080/geoserver")
-GEOSERVER_USER: str = os.environ.get("GEOSERVER_USER", "admin")
-GEOSERVER_PASS: str = os.environ.get("GEOSERVER_PASS", "geoserver")
+GEOSERVER_USER: str = _config("GEOSERVER_USER", "admin", production_required=True)
+GEOSERVER_PASS: str = _config("GEOSERVER_PASS", "geoserver", production_required=True)
 GEOSERVER_WORKSPACE: str = os.environ.get("GEOSERVER_WORKSPACE", "ueea2601")
 GEOSERVER_RETRY_TIMES: int = int(os.environ.get("GEOSERVER_RETRY_TIMES", "3"))
 GEOSERVER_RETRY_DELAY: float = float(os.environ.get("GEOSERVER_RETRY_DELAY", "2.0"))
@@ -60,9 +75,10 @@ COUNTY_ASSET_ID: str = os.environ.get(
 # ──────────────────────────────────────────────
 # 密钥加密
 # ──────────────────────────────────────────────
-ENCRYPTION_SECRET: str = os.environ.get(
+ENCRYPTION_SECRET: str = _config(
     "ENCRYPTION_SECRET",
     "ueea2601-change-me-in-production",
+    production_required=True,
 )
 
 # ──────────────────────────────────────────────

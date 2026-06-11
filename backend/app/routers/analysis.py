@@ -11,9 +11,10 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.orm import Session
 
+from app.auth import get_user_token
 from app.database import get_db
 from app.models import UserBoundary
 from app.routers.mock_data import CITIES
@@ -28,13 +29,16 @@ router = APIRouter(tags=["analysis"])
 @router.get("/api/analysis/{task_id}")
 async def get_analysis(
     task_id: str,
+    authorization: str | None = Header(None),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     """根据 taskId 返回全部分析模块数据，或计算进度。"""
 
     # 查数据库
+    user_token = get_user_token(authorization)
     boundary = db.query(UserBoundary).filter(
-        UserBoundary.task_id == task_id
+        UserBoundary.task_id == task_id,
+        UserBoundary.user_token == user_token,
     ).first()
 
     # 任务不存在

@@ -8,6 +8,15 @@ echo.
 :: ── Detect Python 3.10+ ──
 set "PYTHON_EXE="
 
+:: Method 0: explicit override, e.g. set RS_URBAN_PYTHON=C:\Python311\python.exe
+if defined RS_URBAN_PYTHON (
+    if exist "%RS_URBAN_PYTHON%" (
+        set "PYTHON_EXE=%RS_URBAN_PYTHON%"
+        set "PY_VER=custom"
+        goto :py_found
+    )
+)
+
 :: Method 1: py launcher -3 (most reliable on Windows with multiple versions)
 py -3 --version >nul 2>&1
 if %errorlevel%==0 (
@@ -41,6 +50,7 @@ if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" (
 echo [ERROR] Python 3.10+ not found!
 echo Please install Python 3.10 or later from https://www.python.org/downloads/
 echo Make sure to check "Add Python to PATH" during installation.
+echo Or set RS_URBAN_PYTHON to a portable python.exe path before running this script.
 echo.
 pause
 exit /b 1

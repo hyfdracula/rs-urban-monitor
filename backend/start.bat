@@ -6,6 +6,14 @@ cd /d "%~dp0"
 :: ── Detect Python 3.10+ ──
 set "PYTHON_EXE="
 
+:: Method 0: explicit override, e.g. set RS_URBAN_PYTHON=C:\Python311\python.exe
+if defined RS_URBAN_PYTHON (
+    if exist "%RS_URBAN_PYTHON%" (
+        set "PYTHON_EXE=%RS_URBAN_PYTHON%"
+        goto :py_found
+    )
+)
+
 :: Method 1: py launcher -3 (avoids Python 2.7 from ArcGIS)
 py -3 --version >nul 2>&1
 if %errorlevel%==0 (
@@ -44,6 +52,7 @@ echo   During installation, check "Add Python to PATH".
 echo.
 echo   If you have Python installed but this message appears,
 echo   try running:  py -3 main.py
+echo   Or set:       set RS_URBAN_PYTHON=C:\path\to\python.exe
 echo.
 pause
 exit /b 1

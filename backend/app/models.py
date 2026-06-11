@@ -16,6 +16,7 @@ class UserBoundary(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
+    user_token = Column(String(255), nullable=False, default="anonymous", index=True)
     area_km2 = Column(Float, nullable=True)
     filename = Column(String(255), nullable=False)
     file_type = Column(String(20), nullable=False)

@@ -6,7 +6,7 @@ import {
   getYearLayer,
   getYearLayerId,
   syncVisibleYearLayers,
-} from '../src/utils/timelineLayers.js'
+} from '../../src/utils/timelineLayers.js'
 
 test('finds the GeoServer layer for a time-aware group and year', () => {
   const layer = getYearLayer('construction-land', 2020)

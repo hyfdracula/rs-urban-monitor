@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { createBoundaryUploadForm, createUploadRequestConfig } from '../src/utils/uploadForm.js'
+import { createBoundaryUploadForm, createUploadRequestConfig } from '../../src/utils/uploadForm.js'
 
 test('builds boundary upload form fields', async () => {
   const file = new File(['{}'], 'area.geojson', { type: 'application/geo+json' })
