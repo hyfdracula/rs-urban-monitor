@@ -9,7 +9,7 @@
 
       <!-- Year marks -->
       <div
-        v-for="year in years"
+        v-for="year in yearList"
         :key="year"
         class="year-tick"
         :style="{ left: pct(year) + '%' }"
@@ -60,13 +60,18 @@ import { TIME_PERIODS } from '../../config/map'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [2000, 2020] },
+  /** 可选年份全集；不传或长度<2 时回落 TIME_PERIODS（兼容首页全局长三角场景） */
+  years: { type: Array, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-const years = TIME_PERIODS
-const minYear = years[0]
-const maxYear = years[years.length - 1]
+// 刻度按年份实际数值比例映射（年份间隔大则间距大），与旧逻辑一致
+const yearList = computed(() =>
+  props.years && props.years.length >= 2 ? props.years : TIME_PERIODS,
+)
+const minYear = computed(() => yearList.value[0])
+const maxYear = computed(() => yearList.value[yearList.value.length - 1])
 
 const trackRef = ref(null)
 const isDragging = ref(false)
@@ -76,7 +81,7 @@ const visualEnd = ref(null)
 let dragging = null
 
 function pct(year) {
-  return ((year - minYear) / (maxYear - minYear)) * 100
+  return ((year - minYear.value) / (maxYear.value - minYear.value)) * 100
 }
 
 // Thumb positions: use visual position during drag, modelValue when idle
@@ -89,7 +94,7 @@ const rangeStyle = computed(() => ({
 }))
 
 function nearestYear(value) {
-  return years.reduce((prev, curr) =>
+  return yearList.value.reduce((prev, curr) =>
     Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
   )
 }
@@ -126,8 +131,8 @@ function stopDrag() {
     // Snap to nearest year
     const rawStart = (visualStart.value ?? pct(props.modelValue[0])) / 100
     const rawEnd = (visualEnd.value ?? pct(props.modelValue[1])) / 100
-    const yearStart = nearestYear(rawStart * (maxYear - minYear) + minYear)
-    const yearEnd = nearestYear(rawEnd * (maxYear - minYear) + minYear)
+    const yearStart = nearestYear(rawStart * (maxYear.value - minYear.value) + minYear.value)
+    const yearEnd = nearestYear(rawEnd * (maxYear.value - minYear.value) + minYear.value)
 
     // Ensure start <= end
     const finalStart = Math.min(yearStart, yearEnd)
@@ -159,7 +164,7 @@ function onTrackClick(e) {
   const rect = trackRef.value.getBoundingClientRect()
   let ratio = (e.clientX - rect.left) / rect.width
   ratio = Math.max(0, Math.min(1, ratio))
-  const year = nearestYear(ratio * (maxYear - minYear) + minYear)
+  const year = nearestYear(ratio * (maxYear.value - minYear.value) + minYear.value)
 
   const [start, end] = props.modelValue
 

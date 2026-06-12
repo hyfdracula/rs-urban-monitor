@@ -30,7 +30,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS, LAYER_CONFIG, USE_MAPBOX_STYLE } from '../config/map'
+import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_BOUNDS, LAYER_CONFIG, TIME_PERIODS, USE_MAPBOX_STYLE } from '../config/map'
 import { buildWmsTileUrl } from '../utils/geoserver'
 import { getInitialMapStyle, installMapStyleFallback } from '../utils/mapStyle'
 import RangeTimeline from '../components/map/RangeTimeline.vue'
@@ -41,7 +41,7 @@ let mapA = null
 let mapB = null
 let syncing = false
 
-const yearRange = ref([2000, 2020])
+const yearRange = ref([TIME_PERIODS[0], TIME_PERIODS[TIME_PERIODS.length - 1]])
 
 function initMap(container) {
   mapboxgl.accessToken = USE_MAPBOX_STYLE ? MAPBOX_TOKEN : ''

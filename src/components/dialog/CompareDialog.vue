@@ -42,7 +42,7 @@
 
         <!-- Bottom: range timeline -->
         <div class="compare-footer">
-          <RangeTimeline v-model="yearRange" @change="onRangeChange" />
+          <RangeTimeline v-model="yearRange" :years="years" @change="onRangeChange" />
         </div>
       </div>
     </Transition>
@@ -61,6 +61,8 @@ import RangeTimeline from '../map/RangeTimeline.vue'
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   defaultRange: { type: Array, default: () => [TIME_PERIODS[0], TIME_PERIODS[TIME_PERIODS.length - 1]] },
+  /** 可选年份全集（自定义研究区传边界实际年份，首页不传回落 TIME_PERIODS） */
+  years: { type: Array, default: null },
   /** Separate localStorage key per page so home/custom don't overwrite each other */
   storageKey: { type: String, default: 'compare-range' },
 })

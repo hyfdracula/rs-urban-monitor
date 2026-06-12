@@ -74,7 +74,7 @@
     :study-area="report?.overview?.studyArea || '自定义研究区'"
     :years="report?.meta?.years || report?.overview?.years || []"
   />
-  <CompareDialog v-if="report" v-model="showCompare" :default-range="customCompareRange" storage-key="compare-range-custom" />
+  <CompareDialog v-if="report" v-model="showCompare" :default-range="customCompareRange" :years="boundaryYears" storage-key="compare-range-custom" />
 </template>
 
 <script setup>
@@ -140,6 +140,12 @@ const customCompareRange = computed(() => {
   const years = report.value?.meta?.years || report.value?.overview?.years || []
   if (years.length >= 2) return [years[0], years[years.length - 1]]
   return [TIME_PERIODS[0], TIME_PERIODS[TIME_PERIODS.length - 1]]
+})
+
+/** 边界实际选的年份全集，传给 CompareDialog → RangeTimeline 做动态刻度 */
+const boundaryYears = computed(() => {
+  const years = report.value?.meta?.years || report.value?.overview?.years || []
+  return years.length >= 2 ? years : null
 })
 
 function loadCustomRange() {
