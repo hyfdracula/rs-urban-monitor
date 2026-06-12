@@ -32,7 +32,8 @@ jobs:
 
       - run: npm run build
         env:
-          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+          # Mapbox public token（设计上即暴露在前端 JS，硬编码无安全风险；secret 方式注入不稳定故直接写）
+          VITE_MAPBOX_TOKEN: pk.eyJ1IjoiaHlmZHJhY3VsYSIsImEiOiJjbXEwaW1md2cwc2V5MnFwd2o3b2R3czB3In0.35FykW5Oi8riNHyvxAgqqQ
           # 启用 Mapbox 暗色底图（USE_MAPBOX_STYLE=true → 用 mapbox dark-v11，否则空黑底图）
           VITE_USE_MAPBOX_STYLE: 'true'
           # GitHub Pages 部署在子路径 /rs-urban-monitor/，必须设 base
