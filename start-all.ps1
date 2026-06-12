@@ -292,7 +292,7 @@ function Start-Backend {
 
     $script = @"
 `$Host.UI.RawUI.WindowTitle = 'RS Urban Monitor Backend'
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
 Set-Location -LiteralPath $(ConvertTo-PSLiteral $BackendDir)
 `$env:PYTHONPATH = (Get-Location).Path + ';' + `$env:PYTHONPATH
 Write-Host 'Backend: http://127.0.0.1:8001'
@@ -336,7 +336,7 @@ function Start-Frontend {
 
     $script = @"
 `$Host.UI.RawUI.WindowTitle = 'RS Urban Monitor Frontend'
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
 $pathSetup
 Set-Location -LiteralPath $(ConvertTo-PSLiteral $ProjectRoot)
 Write-Host 'Frontend: http://127.0.0.1:5173'
@@ -362,7 +362,7 @@ function Start-GeoServer {
 
     $script = @"
 `$Host.UI.RawUI.WindowTitle = 'RS Urban Monitor GeoServer'
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
 $javaSetup
 `$env:GEOSERVER_HOME = $(ConvertTo-PSLiteral $GeoServerHome)
 Set-Location -LiteralPath $(ConvertTo-PSLiteral $GeoServerBin)
@@ -385,7 +385,7 @@ function Start-Ngrok {
     $ngrokLog = Join-Path $LogDir "ngrok.log"
     $script = @"
 `$Host.UI.RawUI.WindowTitle = 'RS Urban Monitor ngrok'
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
 Set-Location -LiteralPath $(ConvertTo-PSLiteral $FrontendDir)
 Write-Host 'ngrok: http 5173'
 Write-Host 'Local inspector: http://127.0.0.1:4040'
