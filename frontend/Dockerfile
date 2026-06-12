@@ -18,6 +18,9 @@ COPY index.html ./
 COPY src/ src/
 COPY frontend/ frontend/
 
+# 注入 Vite 构建时环境变量（Mapbox token 等），envDir = 项目根（/app）
+COPY frontend/.env .env
+
 # 构建 → /app/dist
 RUN npm run build
 

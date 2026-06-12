@@ -9,8 +9,6 @@ const projectRoot = resolve(__dirname, '..')
 function manualChunks(id) {
   if (!id.includes('node_modules')) return undefined
   if (id.includes('mapbox-gl') || id.includes('@mapbox')) return 'mapbox'
-  if (id.includes('zrender')) return 'zrender'
-  if (id.includes('echarts')) return 'echarts'
   if (id.includes('element-plus') || id.includes('@element-plus')) return 'element-plus'
   if (id.includes('vue') || id.includes('@vue')) return 'vue'
   if (id.includes('jspdf')) return 'jspdf'
