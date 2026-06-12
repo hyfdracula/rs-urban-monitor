@@ -33,6 +33,9 @@ jobs:
       - run: npm run build
         env:
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+          # GitHub Pages 部署在子路径 /rs-urban-monitor/，必须设 base
+          # 否则构建产物资源是 /assets/... → 子路径下 404 → 白屏
+          VITE_BASE: /rs-urban-monitor/
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
