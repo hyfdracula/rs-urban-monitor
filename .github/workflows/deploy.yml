@@ -33,6 +33,8 @@ jobs:
       - run: npm run build
         env:
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+          # 启用 Mapbox 暗色底图（USE_MAPBOX_STYLE=true → 用 mapbox dark-v11，否则空黑底图）
+          VITE_USE_MAPBOX_STYLE: 'true'
           # GitHub Pages 部署在子路径 /rs-urban-monitor/，必须设 base
           # 否则构建产物资源是 /assets/... → 子路径下 404 → 白屏
           VITE_BASE: /rs-urban-monitor/
